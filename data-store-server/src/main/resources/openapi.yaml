@@ -1,0 +1,668 @@
+openapi: 3.0.3
+
+info:
+  title: Хранилище данных - OpenAPI 3.0
+  version: 1.0.0
+  description: OpenAPI спецификация сервиса хранения данных и оцифрованных объектов
+  license:
+    name: GNU GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0-standalone.html
+
+servers:
+  - url: http://<hostname>/data-store/api
+
+tags:
+  - name: catalog
+    description: Управление картотеками
+  - name: field
+    description: Управление полями карточек из картотеки
+  - name: card
+    description: Управление карточками
+  - name: tag
+    description: Управление полями (метками, тегами) в карточках
+  - name: user
+    description: Управление полномочиями пользователей при работе картотеками
+
+
+paths:
+  /catalog:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+
+    get:
+      summary: Получить список картотек
+      tags:
+        - catalog
+      operationId: catalogList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatalogResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    post:
+      summary: Создать новую картотеку
+      tags:
+        - catalog
+      operationId: addCatalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+  /catalog/{catalogId}:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+
+    put:
+      summary: Изменить название или описание картотеки
+      tags:
+        - catalog
+      operationId: updateCatalogById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      tags:
+        - catalog
+      summary: Удалить картотеку
+      description: Удаление картотеки возможно только в том случае, если
+        оно содержит не более 10 карточек. Если картотека содержит более
+        10 карточек, то удаления не произойдёт, а в качестве ответа сервера
+        будет возвращена ошибка!
+
+      operationId: removeCatalogById
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/field:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+
+    get:
+      summary: Получить список полей карточек в текущей картотеке
+      tags:
+        - field
+      operationId: fieldList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    post:
+      summary: Создать новое поле для карточек в картотеке
+      tags:
+        - field
+      operationId: addField
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+  /catalog/{catalogId}/field/{fieldId}:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/fieldIdParameter'
+
+    put:
+      summary: Изменить порядковый номер, название или описание поля карточки. Изменение типа ассоциированных данных и формата игнорируются
+      tags:
+        - field
+      operationId: updateFieldById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      tags:
+        - field
+      summary: Удалить поле для всех карточек в картотеке
+      description: Удаление поля приведёт к удалению всех ассоциированных с этим полем данных для всех карточек в картотеке
+
+      operationId: removeFieldById
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/card:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+
+    get:
+      parameters:
+        - $ref: '#/components/parameters/pageNumberParameter'
+        - $ref: '#/components/parameters/pageSizeParameter'
+      summary: Получить список карточек в текущей картотеке
+      tags:
+        - card
+      operationId: cardList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    post:
+      summary: Создать новую карточку в картотеке
+      tags:
+        - card
+      operationId: addCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CardTag'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+  /catalog/{catalogId}/card/{cardId}:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/cardIdParameter'
+    get:
+      summary: Получить карточку
+      tags:
+        - card
+      operationId: getCard
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      tags:
+        - card
+      summary: Удалить карточку из картотеки
+      operationId: removeCardById
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/card/{cardId}/tag:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/cardIdParameter'
+
+    put:
+      summary: Прикрепить к карточке новые теги (добавление новых тегов)
+      description: Прикрепляются только новые теги, имеющиеся теги игнорируются
+      tags:
+        - tag
+      operationId: addTags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CardTag'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      tags:
+        - tag
+      summary: Удалить все теги из карточки
+      operationId: removeAllTags
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+  /catalog/{catalogId}/card/{cardId}/tag/{fieldId}:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/cardIdParameter'
+      - $ref: '#/components/parameters/fieldIdParameter'
+
+    delete:
+      tags:
+        - tag
+      summary: Удалить соответствующий указанному полю тег из карточки
+      operationId: removeTag
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/user:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+
+    get:
+      summary: Получить список пользователей, имеющих доступ к картотеке
+      tags:
+        - user
+      operationId: userList
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserAuthorities'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    put:
+      summary: Изменить полномочия действий пользователя в картотеке
+      tags:
+        - user
+      operationId: updateUserAuthorities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAuthorities'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserAuthorities'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      parameters:
+        - in: query
+          name: user
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Уникальный идентификатор пользователя, которому запрещается доступ к картотеке
+      tags:
+        - user
+      summary: Запретить пользователю доступ к картотеке
+      operationId: removeUserAuthorities
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+components:
+  parameters:
+    userUuidParameter:
+      in: header
+      name: User-UUID
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Уникальный идентификатор пользователя, осуществляющего запрос
+
+    catalogIdParameter:
+      in: path
+      name: catalogId
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Идентификатор картотеки
+
+    fieldIdParameter:
+      in: path
+      name: fieldId
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Идентификатор поля
+
+    cardIdParameter:
+      in: path
+      name: cardId
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Идентификатор карточки
+
+    pageNumberParameter:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Номер страницы с результирующим набором данных
+    
+    pageSizeParameter:
+      in: query
+      name: size
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 10
+      description: Максимальное количество элементов возвращаемых при запросе одной страницы
+
+    sortParameter:
+      in: query
+      name: sort
+      required: false
+      schema:
+        type: string
+        enum: [ asc, desc ]
+        default: asc
+        example: asc
+      description: Порядок сортировки
+
+  schemas:
+    CatalogRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название картотеки
+          example: Книги
+        description:
+          type: string
+          description: Описание картотеки
+          example: Картотека книг
+
+    CatalogResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Идентификатор картотеки
+          example: 5
+        name:
+          type: string
+          description: Название картотеки
+          example: Книги
+        description:
+          type: string
+          description: Описание картотеки
+          example: Картотека книг
+        authorities:
+          type: array
+          description: Список полномочий пользователя при работе с каталогом
+          items:
+            $ref: '#/components/schemas/CatalogAuthority'
+
+    CatalogAuthority:
+      type: string
+      description: Полномочия пользователей при работе с картотеками
+      example: MASTER
+      enum: [
+        "MASTER",
+        "GRANT_AUTHORITY",
+        "READING",
+        "WRITING",
+        "DELETING",
+        "FIELD_TEMPLATE_WRITING",
+        "FIELD_TEMPLATE_DELETING"
+      ]
+
+    UserAuthorities:
+      type: object
+      required:
+        - user-uuid
+        - authorities
+      properties:
+        user-uuid:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор пользователя
+          example: 5b633ca4-7e6a-4e93-a33c-a47e6ade93b3
+        authorities:
+          type: array
+          description: Список полномочий пользователя при работе с картотекой
+          items:
+            $ref: '#/components/schemas/CatalogAuthority'
+
+    FieldRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        order:
+          type: integer
+          format: int32
+          description: Порядковый номер поля в карточке. Данное значение используется только для визуального отображения карточек
+          default: 1
+          example: 1
+        name:
+          type: string
+          description: Название поля
+          example: Год издания
+        description:
+          type: string
+          description: Подробное описание поля
+          example: Год издания книги
+        type:
+          $ref: '#/components/schemas/FieldTypes'
+        format:
+          type: string
+          description: Формат интерпретации данных клиентом (формат определяется логикой клиента)
+
+    FieldResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        order:
+          type: integer
+          format: int32
+          description: Порядковый номер поля в карточке
+          example: 1
+        name:
+          type: string
+          description: Название поля
+          example: Год издания
+        description:
+          type: string
+          description: Подробное описание поля
+          example: Год издания книги
+        type:
+          $ref: '#/components/schemas/FieldTypes'
+        format:
+          type: string
+          description: Формат интерпретации данных клиентом (формат определяется логикой клиента)
+
+    FieldTypes:
+      type: string
+      description: Тип данных, определяющий способ хранения, сортировки и сравнения в БД
+      example: INTEGER
+      enum: [
+        "NULL",
+        "INTEGER",
+        "DOUBLE",
+        "BIG_DECIMAL",
+        "STRING",
+        "TEXT",
+        "DATE",
+        "DATETIME",
+        "BOOLEAN",
+        "BYTES",
+        "UUID",
+        "JSON"
+      ]
+
+    CardTag:
+      type: object
+      properties:
+        fieldId:
+          type: integer
+          format: int64
+          description: Идентификатор поля
+          example: 6475
+        value:
+          type: string
+          description: Текстовое представление значения, ассоциированного с текущим полем в карточке
+          example: Java
+
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardTag'

@@ -1,0 +1,15 @@
+server:
+  port: 48884
+  error:
+    include-message: always
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres-db:5432/ds_db?currentSchema=data_store&stringtype=unspecified
+    username: postgres
+    password: postgres
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    enabled: true
