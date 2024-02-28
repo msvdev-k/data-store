@@ -106,25 +106,23 @@ public class UserControllerTest extends ApplicationTest {
         // = updateUsersAuthoritiesRequest1 ===========
 
         UserAuthorities updatedUsersAuthorities1 = updateUsersAuthoritiesRequest(userAuthorities10);
-
-        assertEquals(userAuthorities11, updatedUsersAuthorities1);
+        compareUserAuthorities(userAuthorities11, updatedUsersAuthorities1);
 
         List<UserAuthorities> usersRequest2 = getUsersRequest();
         assertEquals(2, usersRequest2.size());
-        assertTrue(usersRequest2.contains(masterUserAuthorities));
-        assertTrue(usersRequest2.contains(userAuthorities11));
+        containsUserAuthorities(usersRequest2, masterUserAuthorities);
+        containsUserAuthorities(usersRequest2, userAuthorities11);
 
 
         // = updateUsersAuthoritiesRequest2 ===========
 
         UserAuthorities updatedUsersAuthorities2 = updateUsersAuthoritiesRequest(userAuthorities20);
-
-        assertEquals(userAuthorities21, updatedUsersAuthorities2);
+        compareUserAuthorities(userAuthorities21, updatedUsersAuthorities2);
 
         List<UserAuthorities> usersRequest3 = getUsersRequest();
         assertEquals(2, usersRequest3.size());
-        assertTrue(usersRequest3.contains(masterUserAuthorities));
-        assertTrue(usersRequest3.contains(userAuthorities21));
+        containsUserAuthorities(usersRequest3, masterUserAuthorities);
+        containsUserAuthorities(usersRequest3, userAuthorities21);
 
 
         // = deleteUserRequest ========================
@@ -133,7 +131,28 @@ public class UserControllerTest extends ApplicationTest {
         List<UserAuthorities> usersRequest4 = getUsersRequest();
 
         assertEquals(1, usersRequest4.size());
-        assertTrue(usersRequest4.contains(masterUserAuthorities));
+        containsUserAuthorities(usersRequest4, masterUserAuthorities);
+    }
+
+    private void compareUserAuthorities(UserAuthorities expected, UserAuthorities actual) {
+        assertEquals(expected.getUserUuid(), actual.getUserUuid());
+
+        List<CatalogAuthority> expectedAuthorities = expected.getAuthorities();
+        List<CatalogAuthority> actualAuthorities = actual.getAuthorities();
+
+        assertEquals(expectedAuthorities.size(), actualAuthorities.size());
+        expectedAuthorities.forEach(
+                expectedAuthority -> assertTrue(actualAuthorities.contains(expectedAuthority))
+        );
+    }
+
+    private void containsUserAuthorities(List<UserAuthorities> userAuthoritiesList, UserAuthorities userAuthorities) {
+        List<UserAuthorities> filteredUserAuthorities = userAuthoritiesList.stream().filter(
+                user -> user.getUserUuid().equals(userAuthorities.getUserUuid())
+        ).toList();
+
+        assertEquals(1, filteredUserAuthorities.size());
+        compareUserAuthorities(userAuthorities, filteredUserAuthorities.get(0));
     }
 
 
