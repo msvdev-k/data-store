@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.data.entity.Catalog;
-import ru.msvdev.ds.server.sequrity.AuthorityType;
+import ru.msvdev.ds.server.security.Authority;
 
 import java.util.Arrays;
 import java.util.List;
@@ -111,27 +111,27 @@ class CatalogRepositoryTest extends ApplicationTest {
         Catalog catalog = catalogRepository.insert("Картотека", null);
         long catalogId = catalog.id();
 
-        AuthorityType[] authorityTypes = AuthorityType.values();
+        Authority[] authorityTypes = Authority.values();
 
         // = addAuthority ===============
 
-        for (AuthorityType type : authorityTypes) {
+        for (Authority type : authorityTypes) {
             assertTrue(catalogRepository.addAuthority(catalogId, userUuid, type));
         }
 
         // = findAllAuthoritiesAsString =
 
-        List<AuthorityType> authorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
+        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
 
         assertEquals(authorityTypes.length, authorities.size());
 
-        for (AuthorityType type : authorityTypes) {
+        for (Authority type : authorityTypes) {
             assertTrue(authorities.contains(type));
         }
 
         // = removeAuthority ============
 
-        for (AuthorityType type : authorityTypes) {
+        for (Authority type : authorityTypes) {
             assertTrue(catalogRepository.removeAuthority(catalogId, userUuid, type));
         }
 
@@ -140,7 +140,7 @@ class CatalogRepositoryTest extends ApplicationTest {
 
         // = removeAllAuthorities =======
 
-        for (AuthorityType type : authorityTypes) {
+        for (Authority type : authorityTypes) {
             assertTrue(catalogRepository.addAuthority(catalogId, userUuid, type));
         }
         assertTrue(catalogRepository.removeAllAuthorities(catalogId, userUuid));
@@ -159,14 +159,14 @@ class CatalogRepositoryTest extends ApplicationTest {
         Catalog catalog2 = catalogRepository.insert("Картотека 2", null);
         Catalog catalog3 = catalogRepository.insert("Картотека 3", null);
 
-        catalogRepository.addAuthority(catalog1.id(), userUuid1, AuthorityType.MASTER);
-        catalogRepository.addAuthority(catalog2.id(), userUuid1, AuthorityType.MASTER);
-        catalogRepository.addAuthority(catalog3.id(), userUuid1, AuthorityType.MASTER);
+        catalogRepository.addAuthority(catalog1.id(), userUuid1, Authority.MASTER);
+        catalogRepository.addAuthority(catalog2.id(), userUuid1, Authority.MASTER);
+        catalogRepository.addAuthority(catalog3.id(), userUuid1, Authority.MASTER);
 
-        catalogRepository.addAuthority(catalog1.id(), userUuid2, AuthorityType.READING);
+        catalogRepository.addAuthority(catalog1.id(), userUuid2, Authority.READING);
 
-        catalogRepository.addAuthority(catalog2.id(), userUuid2, AuthorityType.WRITING);
-        catalogRepository.addAuthority(catalog2.id(), userUuid2, AuthorityType.FIELD_TEMPLATE_WRITING);
+        catalogRepository.addAuthority(catalog2.id(), userUuid2, Authority.WRITING);
+        catalogRepository.addAuthority(catalog2.id(), userUuid2, Authority.FIELD_TEMPLATE_WRITING);
 
         // = findAllUsers ===============
 
@@ -194,7 +194,7 @@ class CatalogRepositoryTest extends ApplicationTest {
         assertEquals(3, user1Catalogs.size());
         for (Catalog catalog : user1Catalogs) {
             assertEquals(1, catalog.authorities().length);
-            assertEquals(AuthorityType.MASTER, catalog.authorities()[0]);
+            assertEquals(Authority.MASTER, catalog.authorities()[0]);
         }
 
         List<Catalog> user2Catalogs = catalogRepository.findAll(userUuid2);
@@ -203,14 +203,14 @@ class CatalogRepositoryTest extends ApplicationTest {
         for (Catalog catalog : user2Catalogs) {
             if (catalog.id() == catalog1.id()) {
                 assertEquals(1, catalog.authorities().length);
-                assertEquals(AuthorityType.READING, catalog.authorities()[0]);
+                assertEquals(Authority.READING, catalog.authorities()[0]);
                 continue;
             }
             if (catalog.id() == catalog2.id()) {
                 assertEquals(2, catalog.authorities().length);
-                List<AuthorityType> authorityTypes = Arrays.asList(catalog.authorities());
-                assertTrue(authorityTypes.contains(AuthorityType.WRITING));
-                assertTrue(authorityTypes.contains(AuthorityType.FIELD_TEMPLATE_WRITING));
+                List<Authority> authorities = Arrays.asList(catalog.authorities());
+                assertTrue(authorities.contains(Authority.WRITING));
+                assertTrue(authorities.contains(Authority.FIELD_TEMPLATE_WRITING));
             }
         }
 

@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.msvdev.ds.server.data.repository.CatalogRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogAuthority;
 import ru.msvdev.ds.server.openapi.model.UserAuthorities;
-import ru.msvdev.ds.server.sequrity.AuthorityType;
+import ru.msvdev.ds.server.security.Authority;
+import ru.msvdev.ds.server.security.UserAuthorityService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserAuthorityService {
 
     private final CatalogRepository catalogRepository;
 
@@ -45,30 +46,30 @@ public class UserService {
     public UserAuthorities updateAuthorities(Long catalogId, UserAuthorities userAuthorities) {
         UUID userUuid = userAuthorities.getUserUuid();
 
-        List<AuthorityType> newAuthorities = userAuthorities
+        List<Authority> newAuthorities = userAuthorities
                 .getAuthorities()
                 .stream()
-                .map(catalogAuthority -> AuthorityType.valueOf(catalogAuthority.name()))
+                .map(catalogAuthority -> Authority.valueOf(catalogAuthority.name()))
                 .distinct()
                 .toList();
 
-        List<AuthorityType> oldAuthorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
+        List<Authority> oldAuthorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
 
-        List<AuthorityType> removeAuthorities = oldAuthorities.stream()
-                .filter(oldAuthority -> oldAuthority != AuthorityType.MASTER && !newAuthorities.contains(oldAuthority))
+        List<Authority> removeAuthorities = oldAuthorities.stream()
+                .filter(oldAuthority -> oldAuthority != Authority.MASTER && !newAuthorities.contains(oldAuthority))
                 .toList();
 
-        List<AuthorityType> addAuthorities = newAuthorities.stream()
-                .filter(newAuthority -> newAuthority != AuthorityType.MASTER && !oldAuthorities.contains(newAuthority))
+        List<Authority> addAuthorities = newAuthorities.stream()
+                .filter(newAuthority -> newAuthority != Authority.MASTER && !oldAuthorities.contains(newAuthority))
                 .toList();
 
-        for (AuthorityType authority : removeAuthorities) {
+        for (Authority authority : removeAuthorities) {
             if (!catalogRepository.removeAuthority(catalogId, userUuid, authority)) {
                 throw new RuntimeException("Не удалось обновить полномочия пользователя!");
             }
         }
 
-        for (AuthorityType authority : addAuthorities) {
+        for (Authority authority : addAuthorities) {
             if (!catalogRepository.addAuthority(catalogId, userUuid, authority)) {
                 throw new RuntimeException("Не удалось обновить полномочия пользователя!");
             }
@@ -86,11 +87,15 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long catalogId, UUID user) {
-        List<AuthorityType> allAuthorities = catalogRepository.findAllAuthorities(catalogId, user);
-        if (allAuthorities.contains(AuthorityType.MASTER)) {
+        List<Authority> allAuthorities = catalogRepository.findAllAuthorities(catalogId, user);
+        if (allAuthorities.contains(Authority.MASTER)) {
             throw new RuntimeException("Пользователя с полномочиями MASTER удалить не возможно");
         }
         catalogRepository.removeAllAuthorities(catalogId, user);
     }
 
+    @Override
+    public List<Authority> loadAuthorities(UUID userUuid, long catalogId) {
+        return catalogRepository.findAllAuthorities(catalogId, userUuid);
+    }
 }

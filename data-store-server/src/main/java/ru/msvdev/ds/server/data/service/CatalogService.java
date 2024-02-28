@@ -12,7 +12,7 @@ import ru.msvdev.ds.server.data.repository.CatalogRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogAuthority;
 import ru.msvdev.ds.server.openapi.model.CatalogRequest;
 import ru.msvdev.ds.server.openapi.model.CatalogResponse;
-import ru.msvdev.ds.server.sequrity.AuthorityType;
+import ru.msvdev.ds.server.security.Authority;
 
 import java.util.*;
 
@@ -38,7 +38,7 @@ public class CatalogService {
         }
 
         Catalog catalog = catalogRepository.insert(name.trim(), description);
-        boolean result = catalogRepository.addAuthority(catalog.id(), userUUID, AuthorityType.MASTER);
+        boolean result = catalogRepository.addAuthority(catalog.id(), userUUID, Authority.MASTER);
 
         if (!result) {
             throw new RuntimeException("Создать картотеку не удалось");
@@ -126,7 +126,7 @@ public class CatalogService {
         if (catalog.authorities() != null) {
             catalogResponse.setAuthorities(
                     Arrays.stream(catalog.authorities())
-                            .map(AuthorityType::name)
+                            .map(Authority::name)
                             .map(CatalogAuthority::valueOf)
                             .toList()
             );

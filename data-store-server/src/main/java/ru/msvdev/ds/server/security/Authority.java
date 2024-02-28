@@ -1,9 +1,9 @@
-package ru.msvdev.ds.server.sequrity;
+package ru.msvdev.ds.server.security;
 
 /**
- * Типы полномочий при работе с картотеками
+ * Полномочия при работе с картотеками
  */
-public enum AuthorityType {
+public enum Authority {
 
     /**
      * Владелец (создатель, организатор) картотеки

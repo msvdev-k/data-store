@@ -4,7 +4,7 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
 import ru.msvdev.ds.server.data.entity.Catalog;
-import ru.msvdev.ds.server.sequrity.AuthorityType;
+import ru.msvdev.ds.server.security.Authority;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,16 +52,16 @@ public interface CatalogRepository extends Repository<Catalog, Long> {
     List<UUID> findAllUsers(long catalogId);
 
     @Query("SELECT authority FROM user_authorities WHERE catalog_id = :catalogId AND user_uuid = :userUuid")
-    List<AuthorityType> findAllAuthorities(long catalogId, UUID userUuid);
+    List<Authority> findAllAuthorities(long catalogId, UUID userUuid);
 
 
     @Modifying
     @Query("INSERT INTO user_authorities (catalog_id, user_uuid, authority) VALUES (:catalogId, :userUuid, :authority)")
-    boolean addAuthority(long catalogId, UUID userUuid, AuthorityType authority);
+    boolean addAuthority(long catalogId, UUID userUuid, Authority authority);
 
     @Modifying
     @Query("DELETE FROM user_authorities WHERE catalog_id = :catalogId AND user_uuid = :userUuid AND authority = :authority")
-    boolean removeAuthority(long catalogId, UUID userUuid, AuthorityType authority);
+    boolean removeAuthority(long catalogId, UUID userUuid, Authority authority);
 
     @Modifying
     @Query("DELETE FROM user_authorities WHERE catalog_id = :catalogId AND user_uuid = :userUuid")
