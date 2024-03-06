@@ -33,7 +33,7 @@ public class AuthorityFilter extends OncePerRequestFilter {
             }
 
             UUID userUuid = UUID.fromString(userUuidHeader);
-            String[] pathParts = request.getPathInfo().substring(1).split("/");
+            String[] pathParts = request.getRequestURI().substring(1).split("/");
             HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
             Set<Authority> authorities = new HashSet<>();
 
