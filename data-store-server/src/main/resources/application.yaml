@@ -1,12 +1,12 @@
 server:
-  port: 48884
+  port: 8980
   error:
     include-message: always
 
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://postgres-db:5432/ds_db?currentSchema=data_store&stringtype=unspecified
+    url: jdbc:postgresql://postgres-database:5432/data_store?currentSchema=ds_server&stringtype=unspecified
     username: postgres
     password: postgres
   flyway:

@@ -1,5 +1,5 @@
 server:
-  port: 48884
+  port: 8980
   error:
     include-message: always
     include-stacktrace: ON_PARAM
