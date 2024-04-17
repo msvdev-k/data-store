@@ -43,6 +43,7 @@ CREATE TABLE "file_chunks" (
 );
 
 ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_unique_number" UNIQUE ("file_handle_id", "number");
+ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_positive_number" CHECK ("number" > 0);
 ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_file_handle_fk"
     FOREIGN KEY ("file_handle_id") REFERENCES "file_handles" ("id")
     ON DELETE RESTRICT
