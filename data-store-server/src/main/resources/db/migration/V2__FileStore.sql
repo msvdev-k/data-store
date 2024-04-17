@@ -56,20 +56,22 @@ ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_catalog_fk"
 
 
 
--- ----------------------- --
--- Таблица файлов картотек --
--- ----------------------- --
+-- --------------------------------------------------- --
+-- Таблица файлов картотек (файловая система картотек) --
+-- --------------------------------------------------- --
 CREATE TABLE "files" (
-    "catalog_id"     BIGINT                   NOT NULL, -- Идентификатор картотеки, которой принадлежит файл
-    "file_handle_id" BIGINT                   NOT NULL, -- Идентификатор дескриптора файла
-    "datetime"       TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время выгрузки (создания) файла
-
-    PRIMARY KEY ("catalog_id", "file_handle_id")
+    "id"             BIGINT                   PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "catalog_id"     BIGINT                   NOT NULL, -- Идентификатор картотеки, которой принадлежит файл/каталог
+    "file_handle_id" BIGINT                   NOT NULL, -- Идентификатор дескриптора файла/каталога
+    "folder_id"      BIGINT                   NULL,     -- Идентификатор каталога, которому принадлежит файл/каталог
+    "name"           VARCHAR(128)             NOT NULL, -- Название файла/каталога
+    "create_date"    TIMESTAMP WITH TIME ZONE NOT NULL  -- Дата и время создания файла/каталога
 );
 
+ALTER TABLE "files" ADD CONSTRAINT "files_unique_file" UNIQUE ("catalog_id", "file_handle_id");
 ALTER TABLE "files" ADD CONSTRAINT "files_catalog_fk"
     FOREIGN KEY ("catalog_id") REFERENCES "catalogs" ("id")
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
 ALTER TABLE "files" ADD CONSTRAINT "files_file_handle_fk"
@@ -77,32 +79,46 @@ ALTER TABLE "files" ADD CONSTRAINT "files_file_handle_fk"
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
+ALTER TABLE "files" ADD CONSTRAINT "files_folder_fk"
+    FOREIGN KEY ("folder_id") REFERENCES "files" ("id")
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE;
+
+
+
+-- --------------------------------------------------------- --
+-- Глобальный дескриптор каталога файловой системы картотеки --
+-- --------------------------------------------------------- --
+INSERT INTO "file_handles" ("sha256", "mime_type", "size", "chunk_count", "chunk_size", "last_chunk_size") VALUES
+('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'inode/directory', 0, 0, 0, 0);
 
 
 -- ----------------------------------------------- --
 -- Тип данных ассоциированных с дескриптором файла --
 -- ----------------------------------------------- --
 INSERT INTO "field_types" ("id", "type", "description", "pg_type", "java_type") VALUES
-(14, 'FILE_HANDLE', 'Идентификатор дескриптора файла', 'BIGINT', 'Long');
+(14, 'FILE', 'Идентификатор файла', 'BIGINT', 'Long');
+
+
 
 -- ------------------------------------------------ --
 -- Таблица файлов ассоциированных с полями карточек --
 -- ------------------------------------------------ --
 CREATE TABLE "file_values" (
-    "id"    BIGINT      PRIMARY KEY, -- Идентификатор значения
-    "value" BIGINT      NOT NULL,    -- Значение
-    "name"  VARCHAR(64) NULL         -- Название файла, привязанного к карточке
+    "id"      BIGINT      PRIMARY KEY, -- Идентификатор значения
+    "file_id" BIGINT      NOT NULL,    -- Идентификатор файла
+    "name"    VARCHAR(64) NULL         -- Краткое название файла, привязанного к карточке
 
 );
 
-ALTER TABLE "file_values" ADD CONSTRAINT "file_values_unique_value" UNIQUE ("value");
+ALTER TABLE "file_values" ADD CONSTRAINT "file_values_unique_file_id" UNIQUE ("file_id");
 ALTER TABLE "file_values" ADD CONSTRAINT "file_values_fk"
     FOREIGN KEY ("id") REFERENCES "values" ("id")
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
 ALTER TABLE "file_values" ADD CONSTRAINT "file_values_value_fk"
-    FOREIGN KEY ("value") REFERENCES "file_handles" ("id")
+    FOREIGN KEY ("file_id") REFERENCES "files" ("id")
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
