@@ -8,7 +8,7 @@ import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.data.entity.file.FileHandle;
-import ru.msvdev.ds.server.utils.file.ChunkingSchema;
+import ru.msvdev.ds.server.data.entity.file.ChunkingSchema;
 
 import java.util.List;
 import java.util.Optional;
@@ -179,5 +179,22 @@ public class FileHandleRepositoryTest extends ApplicationTest {
 
     }
 
+
+    @Test
+    void folderHandleTest() {
+        Optional<FileHandle> folderHandlerOptional = fileHandleRepository.findFolderHandle();
+
+        assertTrue(folderHandlerOptional.isPresent());
+
+        FileHandle folderHandle = folderHandlerOptional.get();
+        System.out.println("Folder Handle ID: " + folderHandle.id());
+
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", folderHandle.sha256());
+        assertEquals("inode/directory", folderHandle.mimeType());
+        assertEquals(0, folderHandle.chunkCount());
+        assertEquals(0, folderHandle.size());
+        assertEquals(0, folderHandle.chunkSize());
+        assertEquals(0, folderHandle.lastChunkSize());
+    }
 
 }

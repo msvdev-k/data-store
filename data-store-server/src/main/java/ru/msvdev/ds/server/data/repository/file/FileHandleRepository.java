@@ -14,6 +14,10 @@ import java.util.Optional;
  */
 public interface FileHandleRepository extends Repository<FileHandle, Long> {
 
+    @Query("SELECT * FROM folder_handle")
+    Optional<FileHandle> findFolderHandle();
+
+
     @Query("SELECT * FROM file_handles WHERE id = :fileHandleId")
     Optional<FileHandle> findById(long fileHandleId);
 

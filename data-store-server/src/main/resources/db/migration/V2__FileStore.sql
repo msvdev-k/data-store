@@ -92,6 +92,8 @@ ALTER TABLE "files" ADD CONSTRAINT "files_folder_fk"
 INSERT INTO "file_handles" ("sha256", "mime_type", "size", "chunk_count", "chunk_size", "last_chunk_size") VALUES
 ('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'inode/directory', 0, 0, 0, 0);
 
+CREATE VIEW "folder_handle" AS (SELECT * FROM "file_handles" WHERE "sha256" = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+
 
 -- ----------------------------------------------- --
 -- Тип данных ассоциированных с дескриптором файла --
