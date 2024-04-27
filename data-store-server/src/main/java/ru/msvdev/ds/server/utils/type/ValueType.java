@@ -13,7 +13,8 @@ public enum ValueType {
     BOOLEAN(9, ValueServiceBeanNames.BOOLEAN),
     BYTES(10, ValueServiceBeanNames.BYTES),
     UUID(11, ValueServiceBeanNames.UUID),
-    JSON(12, ValueServiceBeanNames.JSON);
+    JSON(12, ValueServiceBeanNames.JSON),
+    FILE_ID(14, ValueServiceBeanNames.FILE_ID);
 
 
     public final int id;

@@ -14,5 +14,6 @@ public class ValueServiceBeanNames {
     public static final String BYTES = "bytesServiceBean";
     public static final String UUID = "uuidServiceBean";
     public static final String JSON = "jsonServiceBean";
+    public static final String FILE_ID = "fileIdServiceBean";
 
 }

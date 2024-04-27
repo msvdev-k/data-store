@@ -102,27 +102,25 @@ CREATE VIEW "folder_handle" AS (SELECT * FROM "file_handles" WHERE "sha256" = 'e
 -- Тип данных ассоциированных с дескриптором файла --
 -- ----------------------------------------------- --
 INSERT INTO "field_types" ("id", "type", "description", "pg_type", "java_type") VALUES
-(14, 'FILE', 'Идентификатор файла', 'BIGINT', 'Long');
+(14, 'FILE_ID', 'Идентификатор файла', 'BIGINT', 'Long');
 
 
 
--- ------------------------------------------------ --
--- Таблица файлов ассоциированных с полями карточек --
--- ------------------------------------------------ --
-CREATE TABLE "file_values" (
-    "id"      BIGINT      PRIMARY KEY, -- Идентификатор значения
-    "file_id" BIGINT      NOT NULL,    -- Идентификатор файла
-    "name"    VARCHAR(64) NULL         -- Краткое название файла, привязанного к карточке
-
+-- ---------------------------------------------------------------- --
+-- Таблица идентификаторов файлов ассоциированных с полями карточек --
+-- ---------------------------------------------------------------- --
+CREATE TABLE "file_id_values" (
+    "id"      BIGINT PRIMARY KEY, -- Идентификатор значения
+    "file_id" BIGINT NOT NULL     -- Идентификатор файла
 );
 
-ALTER TABLE "file_values" ADD CONSTRAINT "file_values_unique_file_id" UNIQUE ("file_id");
-ALTER TABLE "file_values" ADD CONSTRAINT "file_values_fk"
+ALTER TABLE "file_id_values" ADD CONSTRAINT "file_id_values_unique_file_id" UNIQUE ("file_id");
+ALTER TABLE "file_id_values" ADD CONSTRAINT "file_id_values_fk"
     FOREIGN KEY ("id") REFERENCES "values" ("id")
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
-ALTER TABLE "file_values" ADD CONSTRAINT "file_values_value_fk"
+ALTER TABLE "file_id_values" ADD CONSTRAINT "file_id_values_value_fk"
     FOREIGN KEY ("file_id") REFERENCES "files" ("id")
     ON DELETE RESTRICT
     ON UPDATE CASCADE;

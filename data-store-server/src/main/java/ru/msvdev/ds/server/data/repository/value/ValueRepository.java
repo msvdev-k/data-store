@@ -31,7 +31,7 @@ public interface ValueRepository<V> extends Repository<Value, Long> {
     /**
      * Вставить новое значение.
      * Примечание: значение должно быть уникальным, по этому перед
-     * вызовом текущего метода необходимо вызвать метод findIdByValue(V value)
+     * вызовом текущего метода необходимо вызвать метод {@link #findIdByValue(V)}
      *
      * @param value вставляемое значение
      * @return идентификатор вставленного значения

@@ -27,9 +27,9 @@ class FieldTypeRepositoryTest extends ApplicationTest {
     void findAllTest() {
         List<FieldType> fieldTypes = fieldTypeRepository.findAll();
 
-        assertEquals(fieldTypes.size(), 12);
+        assertEquals(13, fieldTypes.size());
 
-        for (FieldType fieldType: fieldTypes) {
+        for (FieldType fieldType : fieldTypes) {
             assertEquals(fieldType.id(), fieldType.type().id);
         }
 
