@@ -62,13 +62,16 @@ ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_catalog_fk"
 CREATE TABLE "files" (
     "id"             BIGINT                   PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "catalog_id"     BIGINT                   NOT NULL, -- Идентификатор картотеки, которой принадлежит файл/каталог
-    "file_handle_id" BIGINT                   NOT NULL, -- Идентификатор дескриптора файла/каталога
     "folder_id"      BIGINT                   NULL,     -- Идентификатор каталога, которому принадлежит файл/каталог
+    "file_handle_id" BIGINT                   NOT NULL, -- Идентификатор дескриптора файла/каталога
     "name"           VARCHAR(128)             NOT NULL, -- Название файла/каталога
-    "create_date"    TIMESTAMP WITH TIME ZONE NOT NULL  -- Дата и время создания файла/каталога
+    "create_date"    TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время создания файла/каталога
+
+    "uname"          VARCHAR(128) GENERATED ALWAYS AS (upper("name")) STORED
 );
 
-ALTER TABLE "files" ADD CONSTRAINT "files_unique_file" UNIQUE ("catalog_id", "file_handle_id");
+ALTER TABLE "files" ADD CONSTRAINT "files_folder_check" CHECK  (("folder_id" IS NULL AND "uname" = 'ROOT') OR "folder_id" IS NOT NULL);
+ALTER TABLE "files" ADD CONSTRAINT "files_unique_name"  UNIQUE NULLS NOT DISTINCT ("catalog_id", "folder_id", "uname");
 ALTER TABLE "files" ADD CONSTRAINT "files_catalog_fk"
     FOREIGN KEY ("catalog_id") REFERENCES "catalogs" ("id")
     ON DELETE RESTRICT
