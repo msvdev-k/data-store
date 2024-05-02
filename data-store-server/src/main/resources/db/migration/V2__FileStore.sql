@@ -151,17 +151,17 @@ CREATE TABLE "upload_chunks" (
     "upload_session_id" BIGINT                   NOT NULL, -- Идентификатор сессии выгрузки файла
     "chunk_id"          BIGINT                   NOT NULL, -- Идентификатор фрагмента файла
     "number"            INTEGER                  NOT NULL, -- Порядковый номер фрагмента
-    "begin"             TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время начала сессии
-    "end"               TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время окончания сессии
-    "state"             VARCHAR(32)              NOT NULL, -- Состояние сессии (UPLOAD, PROCESSING, ERROR)
     "user_uuid"         UUID                     NOT NULL, -- Идентификатор пользователя открывшего сессию
+    "state"             VARCHAR(32)              NOT NULL, -- Состояние сессии (UPLOAD, PROCESSING, ERROR)
+    "last_modified"     TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время последнего изменения состояния сессии
 
-    PRIMARY KEY ("upload_session_id", "chunk_id", "number")
+    PRIMARY KEY ("upload_session_id", "chunk_id")
 );
 
-ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_check_date" CHECK ("begin" < "end");
+ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_unique_number"   UNIQUE ("upload_session_id", "number");
+ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_positive_number" CHECK  ("number" > 0);
 
-ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_upload_session_id_fk"
+ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_upload_session_fk"
     FOREIGN KEY ("upload_session_id") REFERENCES "upload_sessions" ("id")
     ON DELETE CASCADE
     ON UPDATE CASCADE;
@@ -170,31 +170,3 @@ ALTER TABLE "upload_chunks" ADD CONSTRAINT "upload_chunks_chunk_fk"
     FOREIGN KEY ("chunk_id") REFERENCES "chunks" ("id")
     ON DELETE CASCADE
     ON UPDATE CASCADE;
-
-
-
--- ---------------------------------------------------- --
--- Таблица сессий выгрузки файлов открытых в картотеках --
--- ---------------------------------------------------- --
-CREATE TABLE "sessions" (
-    "catalog_id"        BIGINT                   NOT NULL, -- Идентификатор картотеки в которой открывается сессия
-    "upload_session_id" BIGINT                   NOT NULL, -- Идентификатор сессии выгрузки файла
-    "begin"             TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время начала сессии
-    "end"               TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время окончания сессии
-
-    PRIMARY KEY ("catalog_id", "upload_session_id")
-);
-
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_check_date" CHECK ("begin" < "end");
-
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_catalog_fk"
-    FOREIGN KEY ("catalog_id") REFERENCES "catalogs" ("id")
-    ON DELETE CASCADE
-    ON UPDATE CASCADE;
-
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_upload_session_fk"
-    FOREIGN KEY ("upload_session_id") REFERENCES "upload_sessions" ("id")
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE;
-
-
