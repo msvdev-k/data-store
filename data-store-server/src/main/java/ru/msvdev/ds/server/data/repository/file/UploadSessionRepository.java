@@ -4,7 +4,7 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
 import ru.msvdev.ds.server.data.entity.file.UploadSession;
-import ru.msvdev.ds.server.utils.file.UploadFileState;
+import ru.msvdev.ds.server.utils.file.UploadSessionState;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -34,7 +34,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
             )
             SELECT id FROM inserted_session
             """)
-    Long insert(UploadFileState state, String sha256, long size, int chunkCount, int chunkSize, int lastChunkSize);
+    Long insert(UploadSessionState state, String sha256, long size, int chunkCount, int chunkSize, int lastChunkSize);
 
 
     /**
@@ -46,7 +46,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
      */
     @Modifying
     @Query("UPDATE upload_sessions SET state = :newState WHERE id = :uploadSessionId")
-    boolean updateState(long uploadSessionId, UploadFileState newState);
+    boolean updateState(long uploadSessionId, UploadSessionState newState);
 
 
     /**
@@ -96,7 +96,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
             INSERT INTO upload_chunks (upload_session_id, chunk_id, number, user_uuid, state, last_modified)
             VALUES (:uploadSessionId, :chunkId, :number, :userUUID, :state, :lastModified)
             """)
-    boolean insertUploadChunk(UUID userUUID, long uploadSessionId, long chunkId, int number, UploadFileState state, OffsetDateTime lastModified);
+    boolean insertUploadChunk(UUID userUUID, long uploadSessionId, long chunkId, int number, UploadSessionState state, OffsetDateTime lastModified);
 
 
     /**
@@ -114,7 +114,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
             UPDATE upload_chunks SET state = :newState, last_modified = :lastModified
             WHERE upload_session_id = :uploadSessionId AND number = :number AND user_uuid = :userUUID
             """)
-    boolean updateUploadChunkState(UUID userUUID, long uploadSessionId, int number, UploadFileState newState, OffsetDateTime lastModified);
+    boolean updateUploadChunkState(UUID userUUID, long uploadSessionId, int number, UploadSessionState newState, OffsetDateTime lastModified);
 
 
     /**
@@ -142,7 +142,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
      */
     @Modifying
     @Query("DELETE FROM upload_chunks WHERE upload_session_id = :uploadSessionId AND state = :state AND last_modified <= :lastModified")
-    boolean deleteUploadChunk(long uploadSessionId, UploadFileState state, OffsetDateTime lastModified);
+    boolean deleteUploadChunk(long uploadSessionId, UploadSessionState state, OffsetDateTime lastModified);
 
 
     /**

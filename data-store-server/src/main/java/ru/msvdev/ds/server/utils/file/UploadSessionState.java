@@ -1,6 +1,6 @@
 package ru.msvdev.ds.server.utils.file;
 
-public enum UploadFileState {
+public enum UploadSessionState {
     /**
      * Состояние выгрузки файла
      */

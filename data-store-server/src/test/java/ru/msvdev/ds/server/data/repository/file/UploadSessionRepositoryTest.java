@@ -10,7 +10,7 @@ import org.springframework.dao.DuplicateKeyException;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.data.entity.file.ChunkingSchema;
 import ru.msvdev.ds.server.data.entity.file.UploadSession;
-import ru.msvdev.ds.server.utils.file.UploadFileState;
+import ru.msvdev.ds.server.utils.file.UploadSessionState;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -66,13 +66,13 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void insertTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
 
         assertThrowsExactly(DuplicateKeyException.class, () ->
-                uploadSessionRepository.insert(UploadFileState.UPLOAD, sha256, 0, 0, 0, 0)
+                uploadSessionRepository.insert(UploadSessionState.UPLOAD, sha256, 0, 0, 0, 0)
         );
     }
 
@@ -80,21 +80,21 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void updateStateTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
 
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadFileState.UPLOAD));
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadFileState.PROCESSING));
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadFileState.ERROR));
+        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.UPLOAD));
+        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.PROCESSING));
+        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.ERROR));
     }
 
 
     @Test
     void deleteTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -108,7 +108,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void findByIdTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -117,7 +117,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
 
         assertNotNull(uploadSession);
         assertEquals(uploadSessionId, uploadSession.id());
-        assertEquals(UploadFileState.UPLOAD, uploadSession.state());
+        assertEquals(UploadSessionState.UPLOAD, uploadSession.state());
         assertEquals(sha256, uploadSession.sha256());
         assertEquals(fileChunking.size(), uploadSession.size());
         assertEquals(fileChunking.count(), uploadSession.chunkCount());
@@ -129,7 +129,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void findBySha256Test() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -138,7 +138,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
 
         assertNotNull(uploadSession);
         assertEquals(uploadSessionId, uploadSession.id());
-        assertEquals(UploadFileState.UPLOAD, uploadSession.state());
+        assertEquals(UploadSessionState.UPLOAD, uploadSession.state());
         assertEquals(sha256, uploadSession.sha256());
         assertEquals(fileChunking.size(), uploadSession.size());
         assertEquals(fileChunking.count(), uploadSession.chunkCount());
@@ -150,7 +150,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void insertUploadChunkTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -158,13 +158,13 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 1; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], i, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 
         assertThrowsExactly(DuplicateKeyException.class, () ->
                 uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                        chunkIdArray[0], 1, UploadFileState.UPLOAD, OffsetDateTime.now())
+                        chunkIdArray[0], 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
         );
     }
 
@@ -172,7 +172,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void updateUploadChunkStateTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -180,7 +180,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 
@@ -188,7 +188,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.updateUploadChunkState(userUUID, uploadSessionId,
-                            i + 1, UploadFileState.PROCESSING, OffsetDateTime.now())
+                            i + 1, UploadSessionState.PROCESSING, OffsetDateTime.now())
             );
         }
     }
@@ -197,7 +197,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void deleteUploadChunkTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -205,7 +205,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 
@@ -223,7 +223,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void deleteUploadChunksTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -231,11 +231,11 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 
-        assertTrue(uploadSessionRepository.deleteUploadChunk(uploadSessionId, UploadFileState.UPLOAD, OffsetDateTime.now()));
+        assertTrue(uploadSessionRepository.deleteUploadChunk(uploadSessionId, UploadSessionState.UPLOAD, OffsetDateTime.now()));
 
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertFalse(uploadSessionRepository.deleteUploadChunk(uploadSessionId, i + 1));
@@ -246,7 +246,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void findChunkNumbersTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -256,7 +256,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
             numbers.add(chunkIdArray.length - i);
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], chunkIdArray.length - i, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], chunkIdArray.length - i, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 
@@ -274,7 +274,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
     @Test
     void findChunkIdTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
-                UploadFileState.UPLOAD, sha256, fileChunking.size(),
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
                 fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
         assertNotNull(uploadSessionId);
@@ -282,7 +282,7 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         for (int i = 0; i < chunkIdArray.length; i++) {
             assertTrue(
                     uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadFileState.UPLOAD, OffsetDateTime.now())
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
             );
         }
 

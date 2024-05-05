@@ -1,10 +1,10 @@
 package ru.msvdev.ds.server.data.entity.file;
 
-import ru.msvdev.ds.server.utils.file.UploadFileState;
+import ru.msvdev.ds.server.utils.file.UploadSessionState;
 
 public record UploadSession(
         long id,
-        UploadFileState state,
+        UploadSessionState state,
         String sha256,
         long size,
         int chunkCount,
