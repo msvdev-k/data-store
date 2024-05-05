@@ -20,6 +20,8 @@ tags:
     description: Управление карточками
   - name: tag
     description: Управление полями (метками, тегами) в карточках
+  - name: file
+    description: Управление загрузкой/выгрузкой файлов с/на сервер
   - name: user
     description: Управление полномочиями пользователей при работе картотеками
 
@@ -70,6 +72,7 @@ paths:
           description: Client Error
         '5XX':
           description: Server Error
+
 
   /catalog/{catalogId}:
     parameters:
@@ -164,6 +167,7 @@ paths:
           description: Client Error
         '5XX':
           description: Server Error
+
 
   /catalog/{catalogId}/field/{fieldId}:
     parameters:
@@ -262,6 +266,7 @@ paths:
         '5XX':
           description: Server Error
 
+
   /catalog/{catalogId}/card/{cardId}:
     parameters:
       - $ref: '#/components/parameters/userUuidParameter'
@@ -343,6 +348,7 @@ paths:
         '5XX':
           description: Server Error
 
+
   /catalog/{catalogId}/card/{cardId}/tag/{fieldId}:
     parameters:
       - $ref: '#/components/parameters/userUuidParameter'
@@ -358,6 +364,58 @@ paths:
       responses:
         '204':
           description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/file:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+
+    post:
+      summary: Открыть сессию выгрузки файла на сервер
+      tags:
+        - file
+      operationId: addUploadSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadFileRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadFileResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    put:
+      summary: Выгрузить фрагмент файла
+      tags:
+        - file
+      operationId: addChunk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadChunkRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadFileResponse'
         '4XX':
           description: Client Error
         '5XX':
@@ -502,6 +560,17 @@ components:
         default: asc
         example: asc
       description: Порядок сортировки
+
+    resetError:
+      in: query
+      name: reset_error
+      required: false
+      schema:
+        type: boolean
+        default: false
+        example: true
+      description: Флаг сброса ошибки сессии выгрузки файла
+
 
   schemas:
     CatalogRequest:
@@ -666,3 +735,131 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CardTag'
+
+    UploadFileState:
+      type: string
+      description: Состояния в которых могут находится выгружаемые на сервер файлы
+      example: UPLOAD
+      enum: [
+        "UPLOAD",
+        "PROCESSING",
+        "ARCHIVE",
+        "ERROR"
+      ]
+
+    UploadFileRequest:
+      type: object
+      required:
+        - sha256
+        - size
+        - mime_type
+      properties:
+        sha256:
+          type: string
+          description: Hash-сумма выгружаемого на сервер файла
+          minLength: 64
+          maxLength: 64
+          example: "15bae9804c53bc12fb37826d625a156aad04deee685312dfc904c605a7e9b3cc"
+        size:
+          type: integer
+          format: int64
+          description: Размер выгружаемого файла (байт)
+          minimum: 1
+          example: 458965
+        mime_type:
+          type: string
+          description: Тип данных файла
+          example: "application/pdf"
+
+    UploadChunkRequest:
+      type: object
+      required:
+        - upload_session
+        - chunk_number
+        - mime_type
+        - content
+      properties:
+        upload_session:
+          type: integer
+          format: int64
+          description: Идентификатор сессии выгрузки файла
+          minimum: 0
+          example: 489651
+        chunk_number:
+          type: integer
+          format: int32
+          description: Порядковый номер выгружаемого проекта
+          minimum: 1
+          example: 1
+        mime_type:
+          type: string
+          description: Тип данных файла
+          example: "application/pdf"
+        content:
+          type: string
+          description: Содержимое фрагмента файла в виде строки Base64
+          example: "YTg4Njc4ODUtAsUyNC00Y2I0LTg2NzGtODUyODI0MWNiwD=="
+
+    UploadFileResponse:
+      type: object
+      properties:
+        state:
+          $ref: '#/components/schemas/UploadFileState'
+          description: Состояние в котором находится выгружаемый файл
+        sha256:
+          type: string
+          description: Hash-сумма выгружаемого на сервер файла
+          minLength: 64
+          maxLength: 64
+          example: "15bae9804c53bc12fb37826d625a156aad04deee685312dfc904c605a7e9b3cc"
+        size:
+          type: integer
+          format: int64
+          description: Размер выгружаемого файла (байт)
+          minimum: 1
+          example: 3883008
+        mime_type:
+          type: string
+          description: Тип данных файла
+          example: "application/pdf"
+        chunk_count:
+          type: integer
+          format: int32
+          description: Количество фрагментов, на которое разбит файл
+          minimum: 1
+          example: 4
+        chunk_size:
+          type: integer
+          format: int32
+          description: Размер фрагментов файла (байт)
+          minimum: 1024
+          example: 1048576
+        last_chunk_size:
+          type: integer
+          format: int32
+          description: Размер последнего фрагмента файла (байт)
+          minimum: 512
+          example: 737280
+        upload_number:
+          type: integer
+          format: int32
+          description: Порядковый номер фрагмента файла который необходимо выгрузить на сервер. Номера отсчитываются от единицы
+          minimum: 1
+          example: 4
+        upload_offset:
+          type: integer
+          format: int64
+          description: Смещение фрагмента выгружаемого на сервер файла от его начала (байт)
+          minimum: 0
+          example: 3145728
+        upload_size:
+          type: integer
+          format: int32
+          description: Размер выгружаемого на сервер фрагмента файла (байт)
+          minimum: 1
+          example: 737280
+        upload_end:
+          type: string
+          format: date-time
+          description: Дата и время до закрытия сессии выгрузки фрагмента файла
+          example: "2024-05-05T10:34:15.293Z"
