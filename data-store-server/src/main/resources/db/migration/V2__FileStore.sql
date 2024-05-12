@@ -3,71 +3,71 @@
 -- ------------------------------------------------------- --
 
 
--- --------------------------- --
--- Таблица дескрипторов файлов --
--- --------------------------- --
-CREATE TABLE "file_handles" (
+-- ------------------------------------------------ --
+-- Таблица контейнеров для хранения бинарных данных --
+-- ------------------------------------------------ --
+CREATE TABLE "containers" (
     "id"              BIGINT       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "sha256"          VARCHAR(64)  NOT NULL,   -- Hash-сумма файла hex(sha256(content))
-    "mime_type"       VARCHAR(128) NOT NULL,   -- Тип файла
-    "size"            BIGINT       NOT NULL,   -- Размер файла (байт)
-    "chunk_count"     INTEGER      NOT NULL,   -- Количество фрагментов, на которое разбит файл
-    "chunk_size"      INTEGER      NOT NULL,   -- Размер фрагментов файла (байт)
-    "last_chunk_size" INTEGER      NOT NULL    -- Размер последнего фрагмента файла (байт)
+    "sha256"          VARCHAR(64)  NOT NULL,   -- Hash-сумма контейнера данных hex(sha256(content))
+    "size"            BIGINT       NOT NULL,   -- Размер контейнера данных (байт)
+    "chunk_count"     INTEGER      NOT NULL,   -- Количество фрагментов, на которое разбит контейнер
+    "chunk_size"      INTEGER      NOT NULL,   -- Размер фрагментов контейнера (байт)
+    "last_chunk_size" INTEGER      NOT NULL    -- Размер последнего фрагмента контейнера (байт)
 );
 
-ALTER TABLE "file_handles" ADD CONSTRAINT "file_handles_unique_sha256" UNIQUE ("sha256");
+ALTER TABLE "containers" ADD CONSTRAINT "containers_unique_sha256" UNIQUE ("sha256");
 
 
 
--- ---------------------------------- --
--- Таблица бинарных фрагментов файлов --
--- ---------------------------------- --
+-- ------------------------------------------------------------- --
+-- Таблица фрагментов бинарных данных содержащихся в контейнерах --
+-- ------------------------------------------------------------- --
 CREATE TABLE "chunks" (
     "id"      BIGINT  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "size"    INTEGER NOT NULL, -- Размер фрагмента файла (байт)
-    "content" TEXT    NOT NULL  -- Содержимое фрагмента файла в виде строки Base64
+    "size"    INTEGER NOT NULL, -- Размер фрагмента данных контейнера (байт)
+    "content" TEXT    NOT NULL  -- Содержимое фрагмента данных контейнера в виде строки Base64
 );
 
 
 
--- ----------------------------------------------- --
--- Таблица связи фрагментов с дескрипторами файлов --
--- ----------------------------------------------- --
-CREATE TABLE "file_chunks" (
-    "file_handle_id" BIGINT  NOT NULL, -- Идентификатор дескриптора файла
-    "chunk_id"       BIGINT  NOT NULL, -- Идентификатор фрагмента файла
-    "number"         INTEGER NOT NULL, -- Порядковый номер фрагмента (нумерация начинается с единицы, т.е. 1,2,3,4,...)
+-- --------------------------------------------------- --
+-- Таблица связей фрагментов контейнеров с заголовками --
+-- --------------------------------------------------- --
+CREATE TABLE "container_chunks" (
+    "container_id" BIGINT  NOT NULL, -- Идентификатор контейнера
+    "chunk_id"     BIGINT  NOT NULL, -- Идентификатор фрагмента данных содержащихся в контейнере
+    "number"       INTEGER NOT NULL, -- Порядковый номер фрагмента (нумерация начинается с единицы, т.е. 1,2,3,4,...)
 
-    PRIMARY KEY ("file_handle_id", "chunk_id")
+    PRIMARY KEY ("container_id", "chunk_id")
 );
 
-ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_unique_number" UNIQUE ("file_handle_id", "number");
-ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_positive_number" CHECK ("number" > 0);
-ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_file_handle_fk"
-    FOREIGN KEY ("file_handle_id") REFERENCES "file_handles" ("id")
+ALTER TABLE "container_chunks" ADD CONSTRAINT "container_chunks_unique_number"   UNIQUE ("container_id", "number");
+ALTER TABLE "container_chunks" ADD CONSTRAINT "container_chunks_positive_number" CHECK  ("number" > 0);
+ALTER TABLE "container_chunks" ADD CONSTRAINT "container_chunks_container_fk"
+    FOREIGN KEY ("container_id") REFERENCES "containers" ("id")
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
-ALTER TABLE "file_chunks" ADD CONSTRAINT "file_chunks_catalog_fk"
+ALTER TABLE "container_chunks" ADD CONSTRAINT "container_chunks_chunk_fk"
     FOREIGN KEY ("chunk_id") REFERENCES "chunks" ("id")
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
 
 
--- --------------------------------------------------- --
--- Таблица файлов картотек (файловая система картотек) --
--- --------------------------------------------------- --
+-- ---------------------------------------------------------------- --
+-- Таблица дескрипторов файлов картотек (файловая система картотек) --
+-- ---------------------------------------------------------------- --
 CREATE TABLE "files" (
-    "id"             BIGINT                   PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "catalog_id"     BIGINT                   NOT NULL, -- Идентификатор картотеки, которой принадлежит файл/каталог
-    "folder_id"      BIGINT                   NULL,     -- Идентификатор каталога, которому принадлежит файл/каталог
-    "file_handle_id" BIGINT                   NOT NULL, -- Идентификатор дескриптора файла/каталога
-    "name"           VARCHAR(128)             NOT NULL, -- Название файла/каталога
-    "create_date"    TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время создания файла/каталога
+    "id"           BIGINT                   PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "catalog_id"   BIGINT                   NOT NULL, -- Идентификатор картотеки, которой принадлежит файл/каталог
+    "folder_id"    BIGINT                   NULL,     -- Идентификатор каталога, которому принадлежит файл/каталог
+    "container_id" BIGINT                   NOT NULL, -- Идентификатор контейнера данных файла/каталога
+    "name"         VARCHAR(128)             NOT NULL, -- Название файла/каталога
+    "mime_type"    VARCHAR(128)             NOT NULL, -- Тип файла/каталога
+    "create_date"  TIMESTAMP WITH TIME ZONE NOT NULL, -- Дата и время создания файла/каталога
 
-    "uname"          VARCHAR(128) GENERATED ALWAYS AS (upper("name")) STORED
+    "uname"        VARCHAR(128) GENERATED ALWAYS AS (upper("name")) STORED
 );
 
 ALTER TABLE "files" ADD CONSTRAINT "files_folder_check" CHECK  (("folder_id" IS NULL AND "uname" = 'ROOT') OR "folder_id" IS NOT NULL);
@@ -77,8 +77,8 @@ ALTER TABLE "files" ADD CONSTRAINT "files_catalog_fk"
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
-ALTER TABLE "files" ADD CONSTRAINT "files_file_handle_fk"
-    FOREIGN KEY ("file_handle_id") REFERENCES "file_handles" ("id")
+ALTER TABLE "files" ADD CONSTRAINT "files_container_fk"
+    FOREIGN KEY ("container_id") REFERENCES "containers" ("id")
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
@@ -89,13 +89,13 @@ ALTER TABLE "files" ADD CONSTRAINT "files_folder_fk"
 
 
 
--- --------------------------------------------------------- --
--- Глобальный дескриптор каталога файловой системы картотеки --
--- --------------------------------------------------------- --
-INSERT INTO "file_handles" ("sha256", "mime_type", "size", "chunk_count", "chunk_size", "last_chunk_size") VALUES
-('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'inode/directory', 0, 0, 0, 0);
+-- ----------------------------- --
+-- Заголовок пустого контейнера  --
+-- ----------------------------- --
+INSERT INTO "containers" ("sha256", "size", "chunk_count", "chunk_size", "last_chunk_size") VALUES
+('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 0, 0, 0, 0);
 
-CREATE VIEW "folder_handle" AS (SELECT * FROM "file_handles" WHERE "sha256" = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+CREATE VIEW "empty_container" AS (SELECT * FROM "containers" WHERE "sha256" = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
 
 
 -- ----------------------------------------------- --
@@ -127,29 +127,29 @@ ALTER TABLE "file_id_values" ADD CONSTRAINT "file_id_values_value_fk"
 
 
 
--- ---------------------------------------- --
--- Таблица сессий выгрузки файлов на сервер --
--- ---------------------------------------- --
+-- ------------------------------------------------- --
+-- Таблица сессий выгрузки бинарных данных на сервер --
+-- ------------------------------------------------- --
 CREATE TABLE "upload_sessions" (
     "id"              BIGINT  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     "state"           VARCHAR(32)         NOT NULL, -- Состояние сессии (UPLOAD, PROCESSING, ERROR)
-    "sha256"          VARCHAR(64)         NOT NULL, -- Hash-сумма файла hex(sha256(content))
-    "size"            BIGINT              NOT NULL, -- Размер файла (байт)
-    "chunk_count"     INTEGER             NOT NULL, -- Количество фрагментов, на которое разбит файл
-    "chunk_size"      INTEGER             NOT NULL, -- Размер фрагментов файла (байт)
-    "last_chunk_size" INTEGER             NOT NULL  -- Размер последнего фрагмента файла (байт)
+    "sha256"          VARCHAR(64)         NOT NULL, -- Hash-сумма контейнера данных hex(sha256(content))
+    "size"            BIGINT              NOT NULL, -- Размер контейнера (байт)
+    "chunk_count"     INTEGER             NOT NULL, -- Количество фрагментов, на которое разбит контейнер
+    "chunk_size"      INTEGER             NOT NULL, -- Размер фрагментов контейнера (байт)
+    "last_chunk_size" INTEGER             NOT NULL  -- Размер последнего фрагмента контейнера (байт)
 );
 
 ALTER TABLE "upload_sessions" ADD CONSTRAINT "upload_sessions_unique_sha256" UNIQUE ("sha256");
 
 
 
--- ----------------------------------------- --
--- Таблица сессий выгрузки фрагментов файлов --
--- ----------------------------------------- --
+-- -------------------------------------------------------------- --
+-- Таблица сессий выгрузки фрагментов контейнеров бинарных данных --
+-- -------------------------------------------------------------- --
 CREATE TABLE "upload_chunks" (
-    "upload_session_id" BIGINT                   NOT NULL, -- Идентификатор сессии выгрузки файла
-    "chunk_id"          BIGINT                   NOT NULL, -- Идентификатор фрагмента файла
+    "upload_session_id" BIGINT                   NOT NULL, -- Идентификатор сессии выгрузки контейнера
+    "chunk_id"          BIGINT                   NOT NULL, -- Идентификатор фрагмента контейнера
     "number"            INTEGER                  NOT NULL, -- Порядковый номер фрагмента
     "user_uuid"         UUID                     NOT NULL, -- Идентификатор пользователя открывшего сессию
     "state"             VARCHAR(32)              NOT NULL, -- Состояние сессии (UPLOAD, PROCESSING, ERROR)

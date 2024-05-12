@@ -7,10 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.data.entity.file.FileChunk;
+import ru.msvdev.ds.server.data.entity.file.Chunk;
 
 import java.util.Base64;
-import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,12 +56,12 @@ class ChunkRepositoryTest extends ApplicationTest {
 
         // = findById ===================
 
-        Optional<FileChunk> optionalFileChunk = chunkRepository.findById(chunkId);
+        Chunk chunk1 = chunkRepository.findById(chunkId);
 
-        assertTrue(optionalFileChunk.isPresent());
-        assertEquals(size, optionalFileChunk.get().size());
-        assertEquals(content, optionalFileChunk.get().content());
-        assertNull(optionalFileChunk.get().number());
+        assertNotNull(chunk1);
+        assertEquals(size, chunk1.size());
+        assertEquals(content, chunk1.content());
+        assertEquals(-1, chunk1.number());
 
 
         // = updateContent ==============
@@ -72,19 +71,19 @@ class ChunkRepositoryTest extends ApplicationTest {
 
         assertTrue(chunkRepository.updateContent(chunkId, content2));
 
-        Optional<FileChunk> optionalFileChunk2 = chunkRepository.findById(chunkId);
-        assertTrue(optionalFileChunk2.isPresent());
-        assertEquals(size, optionalFileChunk2.get().size());
-        assertEquals(content2, optionalFileChunk2.get().content());
-        assertNull(optionalFileChunk2.get().number());
+        Chunk chunk2 = chunkRepository.findById(chunkId);
+        assertNotNull(chunk2);
+        assertEquals(size, chunk2.size());
+        assertEquals(content2, chunk2.content());
+        assertEquals(-1, chunk2.number());
 
 
         // = deleteById =================
 
         assertTrue(chunkRepository.deleteById(chunkId));
 
-        Optional<FileChunk> optionalFileChunk3 = chunkRepository.findById(chunkId);
-        assertTrue(optionalFileChunk3.isEmpty());
+        Chunk chunk3 = chunkRepository.findById(chunkId);
+        assertNull(chunk3);
     }
 
 }

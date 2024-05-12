@@ -10,13 +10,12 @@ import org.springframework.dao.DuplicateKeyException;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.data.entity.Catalog;
 import ru.msvdev.ds.server.data.entity.file.ChunkingSchema;
-import ru.msvdev.ds.server.data.entity.file.FileHandle;
+import ru.msvdev.ds.server.data.entity.file.ContainerHeader;
 import ru.msvdev.ds.server.data.entity.file.FileInfo;
 import ru.msvdev.ds.server.data.repository.CatalogRepository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,17 +26,18 @@ public class FileRepositoryTest extends ApplicationTest {
 
     private final FileRepository fileRepository;
     private final CatalogRepository catalogRepository;
-    private final FileHandleRepository fileHandleRepository;
+    private final ContainerRepository containerRepository;
 
     @Autowired
-    public FileRepositoryTest(FileRepository fileRepository, CatalogRepository catalogRepository, FileHandleRepository fileHandleRepository) {
+    public FileRepositoryTest(FileRepository fileRepository, CatalogRepository catalogRepository, ContainerRepository containerRepository) {
         this.fileRepository = fileRepository;
         this.catalogRepository = catalogRepository;
-        this.fileHandleRepository = fileHandleRepository;
+        this.containerRepository = containerRepository;
     }
 
     private long catalogId;
-    private FileHandle fileHandle;
+    private ContainerHeader containerHeader;
+    private String mimeType;
     private ChunkingSchema fileChunking;
 
 
@@ -51,14 +51,14 @@ public class FileRepositoryTest extends ApplicationTest {
         int minChunkSize = 512 * 1024;
         fileChunking = ChunkingSchema.of(size, chunkSize, minChunkSize);
 
-        long fileHandleId = fileHandleRepository.insert(
+        long fileHandleId = containerRepository.insert(
                 "f5d343132f7ab1938e186ce599d75fca793022331deb73e544bddbe95538c742",
-                "application/json",
                 fileChunking.size(), fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
         );
-        Optional<FileHandle> optionalFileHandle = fileHandleRepository.findById(fileHandleId);
-        assertTrue(optionalFileHandle.isPresent());
-        fileHandle = optionalFileHandle.get();
+        containerHeader = containerRepository.findById(fileHandleId);
+        assertNotNull(containerHeader);
+
+        mimeType = "application/pdf";
     }
 
     @AfterEach
@@ -80,11 +80,25 @@ public class FileRepositoryTest extends ApplicationTest {
     void insertFolderToRootTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
 
-        Long folderId = fileRepository.insertToRoot(catalogId, "folder", OffsetDateTime.now());
+        Long folderId = fileRepository.insertFolder(catalogId, "folder", OffsetDateTime.now());
         assertNotNull(folderId);
 
         assertThrowsExactly(DuplicateKeyException.class, () ->
-                fileRepository.insertToRoot(catalogId, "FOLDER", OffsetDateTime.now())
+                fileRepository.insertFolder(catalogId, "FOLDER", OffsetDateTime.now())
+        );
+    }
+
+
+    @Test
+    void insertFolderToFolderTest() {
+        fileRepository.insertRoot(catalogId, OffsetDateTime.now());
+        Long parentFolderId = fileRepository.insertFolder(catalogId, "parent folder", OffsetDateTime.now());
+
+        Long folderId = fileRepository.insertFolder(catalogId, parentFolderId, "child folder", OffsetDateTime.now());
+        assertNotNull(folderId);
+
+        assertThrowsExactly(DuplicateKeyException.class, () ->
+                fileRepository.insertFolder(catalogId, parentFolderId, "child FOLDER", OffsetDateTime.now())
         );
     }
 
@@ -93,25 +107,11 @@ public class FileRepositoryTest extends ApplicationTest {
     void insertFileToRootTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
 
-        Long fileId = fileRepository.insertToRoot(catalogId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
         assertNotNull(fileId);
 
         assertThrowsExactly(DuplicateKeyException.class, () ->
-                fileRepository.insertToRoot(catalogId, fileHandle.id(), "FILE Name", OffsetDateTime.now())
-        );
-    }
-
-
-    @Test
-    void insertFolderToFolderTest() {
-        fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long parentFolderId = fileRepository.insertToRoot(catalogId, "parent folder", OffsetDateTime.now());
-
-        Long folderId = fileRepository.insertToFolder(catalogId, parentFolderId, "child folder", OffsetDateTime.now());
-        assertNotNull(folderId);
-
-        assertThrowsExactly(DuplicateKeyException.class, () ->
-                fileRepository.insertToFolder(catalogId, parentFolderId, "child FOLDER", OffsetDateTime.now())
+                fileRepository.insertFile(catalogId, "FILE Name", containerHeader.id(), mimeType, OffsetDateTime.now())
         );
     }
 
@@ -119,13 +119,13 @@ public class FileRepositoryTest extends ApplicationTest {
     @Test
     void insertFileToFolderTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long parentFolderId = fileRepository.insertToRoot(catalogId, "parent folder", OffsetDateTime.now());
+        Long parentFolderId = fileRepository.insertFolder(catalogId, "parent folder", OffsetDateTime.now());
 
-        Long fileId = fileRepository.insertToFolder(catalogId, parentFolderId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, parentFolderId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
         assertNotNull(fileId);
 
         assertThrowsExactly(DuplicateKeyException.class, () ->
-                fileRepository.insertToFolder(catalogId, parentFolderId, fileHandle.id(), "file name", OffsetDateTime.now())
+                fileRepository.insertFile(catalogId, parentFolderId, "file name", containerHeader.id(), mimeType, OffsetDateTime.now())
         );
     }
 
@@ -135,7 +135,7 @@ public class FileRepositoryTest extends ApplicationTest {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
         String fileName = "File Name";
         OffsetDateTime creationDate = OffsetDateTime.now();
-        Long fileId = fileRepository.insertToRoot(catalogId, fileHandle.id(), fileName, creationDate);
+        Long fileId = fileRepository.insertFile(catalogId, fileName, containerHeader.id(), mimeType, creationDate);
 
 
         FileInfo fileInfo = fileRepository.findById(catalogId, fileId);
@@ -149,14 +149,13 @@ public class FileRepositoryTest extends ApplicationTest {
         assertEquals(fileId, fileInfo.id());
         assertEquals(rootInfo.id(), fileInfo.folderId());
         assertEquals(fileName, fileInfo.name());
-        assertEquals(fileHandle.mimeType(), fileInfo.mimeType());
+        assertEquals(mimeType, fileInfo.mimeType());
         assertEquals(creationDate.toEpochSecond(), fileInfo.createDate().toEpochSecond());
-        assertEquals(fileHandle.size(), fileInfo.size());
+        assertEquals(containerHeader.size(), fileInfo.size());
         assertFalse(fileInfo.isRoot());
         assertFalse(fileInfo.isDirectory());
         assertTrue(fileInfo.isFile());
 
-        assertEquals(fileInfo.folderId(), rootInfo.id());
         assertEquals(-1, rootInfo.folderId());
         assertEquals("ROOT", rootInfo.name());
         assertTrue(rootInfo.isRoot());
@@ -168,18 +167,18 @@ public class FileRepositoryTest extends ApplicationTest {
     @Test
     void findSha256ByIdTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long fileId = fileRepository.insertToRoot(catalogId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
 
         String sha256 = fileRepository.findSha256ById(catalogId, fileId);
         assertNotNull(sha256);
-        assertEquals(fileHandle.sha256(), sha256);
+        assertEquals(containerHeader.sha256(), sha256);
     }
 
 
     @Test
     void findChunkingSchemaByIdTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long fileId = fileRepository.insertToRoot(catalogId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
 
         ChunkingSchema chunkingSchema = fileRepository.findChunkingSchemaById(catalogId, fileId);
         assertNotNull(chunkingSchema);
@@ -191,8 +190,8 @@ public class FileRepositoryTest extends ApplicationTest {
     @Test
     void findAllFromRootTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long folderId = fileRepository.insertToRoot(catalogId, "Folder", OffsetDateTime.now());
-        Long fileId = fileRepository.insertToRoot(catalogId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long folderId = fileRepository.insertFolder(catalogId, "Folder", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
 
         List<FileInfo> fileInfoList = fileRepository.findAll(catalogId);
         assertEquals(2, fileInfoList.size());
@@ -204,10 +203,10 @@ public class FileRepositoryTest extends ApplicationTest {
     @Test
     void findAllTest() {
         fileRepository.insertRoot(catalogId, OffsetDateTime.now());
-        Long parentFolderId = fileRepository.insertToRoot(catalogId, "Folder", OffsetDateTime.now());
+        Long parentFolderId = fileRepository.insertFolder(catalogId, "Folder", OffsetDateTime.now());
 
-        Long folderId = fileRepository.insertToFolder(catalogId, parentFolderId, "Folder", OffsetDateTime.now());
-        Long fileId = fileRepository.insertToFolder(catalogId, parentFolderId, fileHandle.id(), "File Name", OffsetDateTime.now());
+        Long folderId = fileRepository.insertFolder(catalogId, parentFolderId, "Folder", OffsetDateTime.now());
+        Long fileId = fileRepository.insertFile(catalogId, parentFolderId, "File Name", containerHeader.id(), mimeType, OffsetDateTime.now());
 
         List<FileInfo> fileInfoList = fileRepository.findAll(catalogId, parentFolderId);
         assertEquals(2, fileInfoList.size());

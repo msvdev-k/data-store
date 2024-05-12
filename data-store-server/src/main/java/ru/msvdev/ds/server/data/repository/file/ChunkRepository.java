@@ -3,15 +3,16 @@ package ru.msvdev.ds.server.data.repository.file;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
-import ru.msvdev.ds.server.data.entity.file.FileChunk;
-
-import java.util.Optional;
+import ru.msvdev.ds.server.data.entity.file.Chunk;
 
 
-public interface ChunkRepository extends Repository<FileChunk, Long> {
+/**
+ * Репозиторий управления фрагментами данных содержащихся в контейнере
+ */
+public interface ChunkRepository extends Repository<Chunk, Long> {
 
-    @Query("SELECT size, content FROM chunks WHERE id = :chunkId")
-    Optional<FileChunk> findById(long chunkId);
+    @Query("SELECT size, content, -1 AS number FROM chunks WHERE id = :chunkId")
+    Chunk findById(long chunkId);
 
 
     @Query("""

@@ -10,6 +10,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 
+/**
+ * Репозиторий для управления файловой системой картотек
+ */
 public interface FileRepository extends Repository<FileInfo, Long> {
 
 
@@ -23,8 +26,8 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      */
     @Modifying
     @Query("""
-            INSERT INTO files (catalog_id, file_handle_id, name, create_date)
-            VALUES (:catalogId, (SELECT id FROM folder_handle), 'ROOT', :createDate)
+            INSERT INTO files (catalog_id, container_id, name, mime_type, create_date)
+            VALUES (:catalogId, (SELECT id FROM empty_container), 'ROOT', 'inode/directory', :createDate)
             """)
     boolean insertRoot(long catalogId, OffsetDateTime createDate);
 
@@ -33,7 +36,7 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * Создать директорию в корне файловой системы картотеки
      *
      * @param catalogId  идентификатор картотеки
-     * @param name       название директории
+     * @param name       название создаваемой директории
      * @param createDate дата и время создания директории
      * @return идентификатор созданной директории
      */
@@ -42,22 +45,46 @@ public interface FileRepository extends Repository<FileInfo, Long> {
                 SELECT id FROM files
                 WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = 'ROOT'
             ), inserted_folder AS (
-                INSERT INTO files (catalog_id, folder_id, file_handle_id, name, create_date)
-                VALUES (:catalogId, (SELECT id FROM root_id), (SELECT id FROM folder_handle), :name, :createDate)
+                INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
+                VALUES (:catalogId, (SELECT id FROM root_id), (SELECT id FROM empty_container), :name, 'inode/directory', :createDate)
                 RETURNING id
             )
             SELECT id FROM inserted_folder
             """)
-    Long insertToRoot(long catalogId, String name, OffsetDateTime createDate);
+    Long insertFolder(long catalogId, String name, OffsetDateTime createDate);
+
+
+    /**
+     * Создать директорию в файловой системе картотеки
+     *
+     * @param catalogId      идентификатор картотеки
+     * @param parentFolderId идентификатор родительской директории
+     * @param name           название создаваемой директории
+     * @param createDate     дата и время создания директории
+     * @return идентификатор созданной директории
+     */
+    @Query("""
+            WITH folder_id AS (
+                SELECT id FROM files
+                WHERE id = :parentFolderId AND catalog_id = :catalogId
+            ), inserted_folder AS (
+                INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
+                VALUES (:catalogId, (SELECT id FROM folder_id), (SELECT id FROM empty_container), :name, 'inode/directory', :createDate)
+                RETURNING id
+            )
+            SELECT id FROM inserted_folder
+            """)
+    Long insertFolder(long catalogId, long parentFolderId, String name, OffsetDateTime createDate);
 
 
     /**
      * Создать файл в корне файловой системы картотеки
      *
-     * @param catalogId    идентификатор картотеки
-     * @param fileHandleId идентификатор дескриптора файла
-     * @param name         название файла
-     * @param createDate   дата и время создания файла
+     * @param catalogId   идентификатор картотеки
+     * @param name        название файла
+     * @param containerId идентификатор контейнера с бинарными данными файла
+     * @param mimeType    тип данных файла
+     * @param createDate  дата и время создания файла
      * @return идентификатор созданного файла
      */
     @Query("""
@@ -65,60 +92,38 @@ public interface FileRepository extends Repository<FileInfo, Long> {
                 SELECT id FROM files
                 WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = 'ROOT'
             ), inserted_file AS (
-                INSERT INTO files (catalog_id, folder_id, file_handle_id, name, create_date)
-                VALUES (:catalogId, (SELECT id FROM root_id), :fileHandleId, :name, :createDate)
+                INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
+                VALUES (:catalogId, (SELECT id FROM root_id), :containerId, :name, :mimeType, :createDate)
                 RETURNING id
             )
             SELECT id FROM inserted_file
             """)
-    Long insertToRoot(long catalogId, long fileHandleId, String name, OffsetDateTime createDate);
-
-
-    /**
-     * Создать каталог в файловой системы картотеки
-     *
-     * @param catalogId  идентификатор картотеки
-     * @param folderId   идентификатор родительского каталога
-     * @param name       название создаваемого каталога
-     * @param createDate дата и время создания каталога
-     * @return идентификатор созданного каталога
-     */
-    @Query("""
-            WITH folder_id AS (
-                SELECT id FROM files
-                WHERE id = :folderId AND catalog_id = :catalogId
-            ), inserted_folder AS (
-                INSERT INTO files (catalog_id, folder_id, file_handle_id, name, create_date)
-                VALUES (:catalogId, (SELECT id FROM folder_id), (SELECT id FROM folder_handle), :name, :createDate)
-                RETURNING id
-            )
-            SELECT id FROM inserted_folder
-            """)
-    Long insertToFolder(long catalogId, long folderId, String name, OffsetDateTime createDate);
+    Long insertFile(long catalogId, String name, long containerId, String mimeType, OffsetDateTime createDate);
 
 
     /**
      * Создать файл в файловой системы картотеки
      *
-     * @param catalogId    идентификатор картотеки
-     * @param folderId     идентификатор родительского каталога
-     * @param fileHandleId глобальный идентификатор файла
-     * @param name         название создаваемого файла
-     * @param createDate   дата и время создания файла
+     * @param catalogId      идентификатор картотеки
+     * @param parentFolderId идентификатор родительского каталога
+     * @param name           название создаваемого файла
+     * @param containerId    идентификатор контейнера с бинарными данными файла
+     * @param mimeType       тип данных файла
+     * @param createDate     дата и время создания файла
      * @return идентификатор созданного файла
      */
     @Query("""
             WITH folder_id AS (
                 SELECT id FROM files
-                WHERE id = :folderId AND catalog_id = :catalogId
+                WHERE id = :parentFolderId AND catalog_id = :catalogId
             ), inserted_file AS (
-                INSERT INTO files (catalog_id, folder_id, file_handle_id, name, create_date)
-                VALUES (:catalogId, (SELECT id FROM folder_id), :fileHandleId, :name, :createDate)
+                INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
+                VALUES (:catalogId, (SELECT id FROM folder_id), :containerId, :name, :mimeType, :createDate)
                 RETURNING id
             )
             SELECT id FROM inserted_file
             """)
-    Long insertToFolder(long catalogId, long folderId, long fileHandleId, String name, OffsetDateTime createDate);
+    Long insertFile(long catalogId, long parentFolderId, String name, long containerId, String mimeType, OffsetDateTime createDate);
 
 
     /**
@@ -129,9 +134,9 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @return объект с информацией о файле/каталоге
      */
     @Query("""
-            SELECT f.id, COALESCE(f.folder_id, -1) AS folder_id, f.name, fh.mime_type, f.create_date, fh.size
+            SELECT f.id, COALESCE(f.folder_id, -1) AS folder_id, f.name, f.mime_type, f.create_date, c.size
             FROM files AS f
-            INNER JOIN file_handles AS fh ON fh.id = f.file_handle_id
+            INNER JOIN containers AS c ON c.id = f.container_id
             WHERE f.id = :fileId AND f.catalog_id = :catalogId
             """)
     FileInfo findById(long catalogId, long fileId);
@@ -145,9 +150,9 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @return hash-сумма файла (sha256)
      */
     @Query("""
-            SELECT fh.sha256
+            SELECT c.sha256
             FROM files AS f
-            INNER JOIN file_handles AS fh ON fh.id = f.file_handle_id
+            INNER JOIN containers AS c ON c.id = f.container_id
             WHERE f.id = :fileId AND f.catalog_id = :catalogId
             """)
     String findSha256ById(long catalogId, long fileId);
@@ -161,9 +166,9 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @return объект представляющий схему разбиения файла
      */
     @Query("""
-            SELECT fh.size, fh.chunk_count AS "count", fh.chunk_size, fh.last_chunk_size
+            SELECT c.size, c.chunk_count AS "count", c.chunk_size, c.last_chunk_size
             FROM files AS f
-            INNER JOIN file_handles AS fh ON fh.id = f.file_handle_id
+            INNER JOIN containers AS c ON c.id = f.container_id
             WHERE f.id = :fileId AND f.catalog_id = :catalogId
             """)
     ChunkingSchema findChunkingSchemaById(long catalogId, long fileId);
@@ -176,10 +181,10 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @return список файлов/каталогов
      */
     @Query("""
-            SELECT f.id, f.folder_id, f.name, fh.mime_type, f.create_date, fh.size
-            FROM       files        AS f
-            INNER JOIN file_handles AS fh   ON fh.id   = f.file_handle_id
-            INNER JOIN files        AS root ON root.id = f.folder_id
+            SELECT f.id, f.folder_id, f.name, f.mime_type, f.create_date, c.size
+            FROM       files      AS f
+            INNER JOIN containers AS c    ON c.id    = f.container_id
+            INNER JOIN files      AS root ON root.id = f.folder_id
             WHERE f.catalog_id = :catalogId AND root.folder_id IS NULL AND root.uname = 'ROOT'
             LIMIT 16384
             """)
@@ -194,10 +199,10 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @return список файлов/каталогов
      */
     @Query("""
-            SELECT f.id, f.folder_id, f.name, fh.mime_type, f.create_date, fh.size
-            FROM       files        AS f
-            INNER JOIN file_handles AS fh  ON fh.id  = f.file_handle_id
-            INNER JOIN files        AS fld ON fld.id = f.folder_id
+            SELECT f.id, f.folder_id, f.name, f.mime_type, f.create_date, c.size
+            FROM       files      AS f
+            INNER JOIN containers AS c   ON c.id   = f.container_id
+            INNER JOIN files      AS fld ON fld.id = f.folder_id
             WHERE f.catalog_id = :catalogId AND fld.catalog_id = :catalogId AND fld.id = :folderId
             LIMIT 16384
             """)
