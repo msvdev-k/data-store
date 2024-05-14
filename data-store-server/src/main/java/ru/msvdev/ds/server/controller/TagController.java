@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import ru.msvdev.ds.server.data.service.TagService;
+import ru.msvdev.ds.server.service.TagService;
 import ru.msvdev.ds.server.openapi.api.TagApi;
 import ru.msvdev.ds.server.openapi.model.CardResponse;
 import ru.msvdev.ds.server.openapi.model.CardTag;

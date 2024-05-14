@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.data.entity.Field;
+import ru.msvdev.ds.server.dao.entity.Field;
 import ru.msvdev.ds.server.openapi.model.*;
 import ru.msvdev.ds.server.utils.type.ValueType;
 
