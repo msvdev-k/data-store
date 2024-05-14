@@ -21,7 +21,7 @@ tags:
   - name: tag
     description: Управление полями (метками, тегами) в карточках
   - name: file
-    description: Управление загрузкой/выгрузкой файлов с/на сервер
+    description: Управление загрузкой/выгрузкой содержимого файлов с/на сервер
   - name: user
     description: Управление полномочиями пользователей при работе картотеками
 
@@ -378,7 +378,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/resetError'
-      summary: Открыть сессию выгрузки файла на сервер
+      summary: Открыть сессию выгрузки содержимого файла на сервер
       tags:
         - file
       operationId: openUploadSession
@@ -754,7 +754,6 @@ components:
       required:
         - sha256
         - size
-        - mime_type
       properties:
         sha256:
           type: string
@@ -766,26 +765,21 @@ components:
           type: integer
           format: int64
           description: Размер выгружаемого файла (байт)
-          minimum: 1
-          example: 458965
-        mime_type:
-          type: string
-          description: Тип данных файла
-          example: "application/pdf"
+          minimum: 512
+          example: 3883008
 
     UploadChunkRequest:
       type: object
       required:
         - upload_session
         - chunk_number
-        - mime_type
         - content
       properties:
         upload_session:
           type: integer
           format: int64
           description: Идентификатор сессии выгрузки файла
-          minimum: 0
+          minimum: 1
           example: 489651
         chunk_number:
           type: integer
@@ -793,10 +787,6 @@ components:
           description: Порядковый номер выгружаемого проекта
           minimum: 1
           example: 1
-        mime_type:
-          type: string
-          description: Тип данных файла
-          example: "application/pdf"
         content:
           type: string
           description: Содержимое фрагмента файла в виде строки Base64
@@ -807,7 +797,6 @@ components:
       properties:
         state:
           $ref: '#/components/schemas/UploadFileState'
-          description: Состояние в котором находится выгружаемый файл
         sha256:
           type: string
           description: Hash-сумма выгружаемого на сервер файла
@@ -818,12 +807,8 @@ components:
           type: integer
           format: int64
           description: Размер выгружаемого файла (байт)
-          minimum: 1
+          minimum: 512
           example: 3883008
-        mime_type:
-          type: string
-          description: Тип данных файла
-          example: "application/pdf"
         chunk_count:
           type: integer
           format: int32
@@ -857,7 +842,7 @@ components:
         upload_size:
           type: integer
           format: int32
-          description: Размер выгружаемого на сервер фрагмента файла (байт)
+          description: Размер фрагмента выгружаемого на сервер файла (байт)
           minimum: 1
           example: 737280
         upload_end:
