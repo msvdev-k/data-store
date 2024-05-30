@@ -21,5 +21,5 @@ datastore:
     upload-session:
       chunk-size: 1KB
       min-chunk-size: 512B
-      upload-chunk-timeout: 1m
-      upload-session-timeout: 1h
+      upload-chunk-timeout: 10s
+      upload-session-timeout: 10m
