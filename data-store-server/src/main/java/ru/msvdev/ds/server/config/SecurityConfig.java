@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .addMatcher("catalog/{catalogId}/user", HttpMethod.GET, Authority.MASTER, Authority.GRANT_AUTHORITY)
                 .addMatcher("catalog/{catalogId}/user", HttpMethod.PUT, Authority.MASTER, Authority.GRANT_AUTHORITY)
                 .addMatcher("catalog/{catalogId}/user", HttpMethod.DELETE, Authority.MASTER, Authority.GRANT_AUTHORITY)
+                .addMatcher("catalog/{catalogId}/file", HttpMethod.POST, Authority.MASTER, Authority.FILE_UPLOAD)
+                .addMatcher("catalog/{catalogId}/file", HttpMethod.PUT, Authority.MASTER, Authority.FILE_UPLOAD)
 
                 .build();
     }

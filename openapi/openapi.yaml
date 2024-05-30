@@ -829,6 +829,12 @@ components:
           description: Размер последнего фрагмента файла (байт)
           minimum: 512
           example: 737280
+        upload_session:
+          type: integer
+          format: int64
+          description: Идентификатор сессии выгрузки файла
+          minimum: 1
+          example: 489651
         upload_number:
           type: integer
           format: int32
