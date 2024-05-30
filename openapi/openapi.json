@@ -898,7 +898,9 @@
           "WRITING",
           "DELETING",
           "FIELD_TEMPLATE_WRITING",
-          "FIELD_TEMPLATE_DELETING"
+          "FIELD_TEMPLATE_DELETING",
+          "FILE_UPLOAD",
+          "FILE_DOWNLOAD"
         ]
       },
       "UserAuthorities": {
@@ -1143,6 +1145,13 @@
             "description": "Размер последнего фрагмента файла (байт)",
             "minimum": 512,
             "example": 737280
+          },
+          "upload_session": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Идентификатор сессии выгрузки файла",
+            "minimum": 1,
+            "example": 489651
           },
           "upload_number": {
             "type": "integer",
