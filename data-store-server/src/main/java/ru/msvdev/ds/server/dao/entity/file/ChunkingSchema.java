@@ -17,6 +17,8 @@ public record ChunkingSchema(
         int lastChunkSize
 ) {
 
+    public static final int FIRST_CHUNK_NUMBER = 1;
+
     /**
      * Получить схему разбиения контейнера данных.
      * Правила разбиения:
@@ -61,7 +63,7 @@ public record ChunkingSchema(
      * @return смещение от начала контейнера (байт)
      */
     public long getOffsetChunk(int chunkNumber) {
-        if (chunkNumber < 1 && chunkNumber > count)
+        if (chunkNumber < 1 || chunkNumber > count)
             throw new IndexOutOfBoundsException("Порядковый номер фрагмента выходит за диапазон допустимых значений");
 
         return (long) (chunkNumber - 1) * chunkSize;
@@ -74,7 +76,7 @@ public record ChunkingSchema(
      * @return размер фрагмента (байт)
      */
     public int getChunkSize(int chunkNumber) {
-        if (chunkNumber < 1 && chunkNumber > count)
+        if (chunkNumber < 1 || chunkNumber > count)
             throw new IndexOutOfBoundsException("Порядковый номер фрагмента выходит за диапазон допустимых значений");
 
         return chunkNumber == count ? lastChunkSize : chunkSize;
