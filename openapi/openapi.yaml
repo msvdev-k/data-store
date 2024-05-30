@@ -622,7 +622,9 @@ components:
         "WRITING",
         "DELETING",
         "FIELD_TEMPLATE_WRITING",
-        "FIELD_TEMPLATE_DELETING"
+        "FIELD_TEMPLATE_DELETING",
+        "FILE_UPLOAD",
+        "FILE_DOWNLOAD"
       ]
 
     UserAuthorities:
