@@ -81,6 +81,16 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
 
 
     /**
+     * Найти все идентификаторы сессии выгрузки файла по их состоянию
+     *
+     * @param state состояние сессии выгрузки фрагмента файла
+     * @return массив идентификаторов найденных сессий
+     */
+    @Query("SELECT id FROM upload_sessions WHERE state = :state")
+    long[] findAllIdByState(UploadSessionState state);
+
+
+    /**
      * Добавить сессию выгрузки фрагмента файла
      *
      * @param userUUID        идентификатор пользователя, выгружающего фрагмент файла
@@ -141,6 +151,28 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
 
 
     /**
+     * Удалить все сессии выгрузки фрагментов файлов по их состоянию
+     * и дате последнего изменения этого состояния.
+     * <p>
+     * Примечание: метод предназначен для удаления просроченных сессий
+     *
+     * @param state        состояния удаляемых сессий
+     * @param lastModified дата и время изменения состояния меньше которого сессии удаляются
+     * @return True - удаление успешное, False - удаление не произошло
+     */
+    @Modifying
+    @Query("""
+            WITH chunks_for_delete AS (
+                DELETE FROM upload_chunks
+                WHERE state = :state AND last_modified <= :lastModified
+                RETURNING chunk_id
+            )
+            DELETE FROM chunks WHERE id IN (SELECT chunk_id FROM chunks_for_delete)
+            """)
+    boolean deleteUploadChunk(UploadSessionState state, OffsetDateTime lastModified);
+
+
+    /**
      * Найти все порядковые номера фрагментов выгружаемого файла
      *
      * @param uploadSessionId идентификатор сессии выгрузки файла
@@ -192,4 +224,20 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
      */
     @Query("SELECT chunk_id FROM upload_chunks WHERE upload_session_id = :uploadSessionId AND number = :number AND user_uuid = :userUUID")
     Long findChunkId(UUID userUUID, long uploadSessionId, int number);
+
+
+    /**
+     * Получить содержимое фрагмента файла
+     *
+     * @param uploadSessionId идентификатор сессии выгрузки файла
+     * @param chunkNumber     порядковый номер фрагмента (нумерация начинается с единицы, т.е. 1,2,3,4,...)
+     * @return содержимое фрагмента файла в виде строки формата Base64
+     */
+    @Query("""
+            SELECT ch.content
+            FROM upload_chunks AS cnt
+            INNER JOIN chunks AS ch ON ch.id = cnt.chunk_id
+            WHERE cnt.upload_session_id = :uploadSessionId AND cnt.number = :chunkNumber
+            """)
+    String findChunkContent(long uploadSessionId, int chunkNumber);
 }

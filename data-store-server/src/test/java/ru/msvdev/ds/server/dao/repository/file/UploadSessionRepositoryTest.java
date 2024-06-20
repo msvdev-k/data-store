@@ -53,9 +53,9 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
 
         chunkIdArray = new long[fileChunking.count()];
         for (int i = 0; i < fileChunking.count() - 1; i++) {
-            chunkIdArray[i] = chunkRepository.insert(fileChunking.chunkSize(), "");
+            chunkIdArray[i] = chunkRepository.insert(fileChunking.chunkSize(), String.valueOf(i + 1));
         }
-        chunkIdArray[fileChunking.count() - 1] = chunkRepository.insert(fileChunking.lastChunkSize(), "");
+        chunkIdArray[fileChunking.count() - 1] = chunkRepository.insert(fileChunking.lastChunkSize(), String.valueOf(fileChunking.count()));
     }
 
     @AfterEach
@@ -148,6 +148,25 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
 
 
     @Test
+    void finAllIdBySateTest() {
+        Long uploadSessionId = uploadSessionRepository.insert(
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
+                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
+        );
+        assertNotNull(uploadSessionId);
+
+        long[] ids1 = uploadSessionRepository.findAllIdByState(UploadSessionState.UPLOAD);
+
+        assertEquals(1, ids1.length);
+        assertEquals(uploadSessionId, ids1[0]);
+
+        long[] ids2 = uploadSessionRepository.findAllIdByState(UploadSessionState.PROCESSING);
+
+        assertEquals(0, ids2.length);
+    }
+
+
+    @Test
     void insertUploadChunkTest() {
         Long uploadSessionId = uploadSessionRepository.insert(
                 UploadSessionState.UPLOAD, sha256, fileChunking.size(),
@@ -210,6 +229,27 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
         }
 
         assertTrue(uploadSessionRepository.deleteUploadChunk(uploadSessionId, UploadSessionState.UPLOAD, OffsetDateTime.now()));
+
+        assertEquals(0, uploadSessionRepository.countChunkNumbers(uploadSessionId));
+    }
+
+
+    @Test
+    void deleteUploadChunksForAllSessionTest() {
+        Long uploadSessionId = uploadSessionRepository.insert(
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
+                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
+        );
+        assertNotNull(uploadSessionId);
+
+        for (int i = 0; i < chunkIdArray.length; i++) {
+            assertTrue(
+                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
+            );
+        }
+
+        assertTrue(uploadSessionRepository.deleteUploadChunk(UploadSessionState.UPLOAD, OffsetDateTime.now()));
 
         assertEquals(0, uploadSessionRepository.countChunkNumbers(uploadSessionId));
     }
@@ -304,5 +344,28 @@ public class UploadSessionRepositoryTest extends ApplicationTest {
             assertNull(chunkId);
         }
     }
+
+    @Test
+    void findChunkContentTest() {
+        Long uploadSessionId = uploadSessionRepository.insert(
+                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
+                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
+        );
+        assertNotNull(uploadSessionId);
+
+        for (int i = 0; i < chunkIdArray.length; i++) {
+            assertTrue(
+                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
+                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
+            );
+        }
+
+
+        for (int i = 1; i < chunkIdArray.length; i++) {
+            String chunkContent = uploadSessionRepository.findChunkContent(uploadSessionId, i);
+            assertEquals(String.valueOf(i), chunkContent);
+        }
+    }
+
 
 }
