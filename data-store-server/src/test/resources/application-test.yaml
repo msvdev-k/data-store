@@ -23,3 +23,5 @@ datastore:
       min-chunk-size: 512B
       upload-chunk-timeout: 10s
       upload-session-timeout: 10m
+      processing-thread-count: 1
+      processing-buffer-size: 100

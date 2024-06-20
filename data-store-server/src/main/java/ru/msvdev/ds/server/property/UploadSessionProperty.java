@@ -18,6 +18,9 @@ public record UploadSessionProperty(
         Duration uploadChunkTimeout,
         Duration uploadSessionTimeout,
         DataSize chunkSize,
-        DataSize minChunkSize
+        DataSize minChunkSize,
+
+        int processingThreadCount,
+        int processingBufferSize
 ) {
 }
