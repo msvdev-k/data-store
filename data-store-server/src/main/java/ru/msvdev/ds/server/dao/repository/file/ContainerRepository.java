@@ -96,6 +96,29 @@ public interface ContainerRepository extends Repository<ContainerHeader, Long> {
 
 
     /**
+     * Создать контейнер бинарных данных на основе сессии выгрузки файла на сервер
+     *
+     * @param uploadSessionId идентификатор сессии выгрузки содержимого файла
+     * @return True - контейнер создан успешно, False - контейнер не создан
+     */
+    @Modifying
+    @Query("""
+            WITH added_container AS (
+                INSERT INTO containers (sha256, size, chunk_count, chunk_size, last_chunk_size)
+                SELECT sha256, size, chunk_count, chunk_size, last_chunk_size
+                FROM upload_sessions
+                WHERE id = :uploadSessionId
+                RETURNING id
+            )
+            INSERT INTO container_chunks (container_id, chunk_id, number)
+            SELECT id, chunk_id, number
+            FROM added_container, upload_chunks
+            WHERE upload_session_id = :uploadSessionId
+            """)
+    boolean insertFromUploadSession(long uploadSessionId);
+
+
+    /**
      * Получить фрагмент данных содержащихся в контейнере
      *
      * @param containerId идентификатор контейнера
