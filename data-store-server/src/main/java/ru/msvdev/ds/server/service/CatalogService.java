@@ -107,13 +107,13 @@ public class CatalogService {
             }
         }
 
-        Optional<Catalog> optionalCatalog = catalogRepository.findById(catalogId);
+        Catalog catalog = catalogRepository.findById(catalogId);
 
-        if (optionalCatalog.isEmpty()) {
+        if (catalog == null) {
             throw new RuntimeException("Картотека не найдена");
         }
 
-        return convert(optionalCatalog.get());
+        return convert(catalog);
     }
 
 

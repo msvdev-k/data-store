@@ -7,14 +7,13 @@ import ru.msvdev.ds.server.dao.entity.Catalog;
 import ru.msvdev.ds.server.security.Authority;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
 public interface CatalogRepository extends Repository<Catalog, Long> {
 
     @Query("SELECT * FROM catalogs WHERE id = :id")
-    Optional<Catalog> findById(long id);
+    Catalog findById(long id);
 
     @Query("""
             SELECT c.id, c.name, c.description, array_agg(a.authority) AS authorities
@@ -66,9 +65,4 @@ public interface CatalogRepository extends Repository<Catalog, Long> {
     @Modifying
     @Query("DELETE FROM user_authorities WHERE catalog_id = :catalogId AND user_uuid = :userUuid")
     boolean removeAllAuthorities(long catalogId, UUID userUuid);
-
-
-    @Deprecated // Use CardRepository::count
-    @Query("SELECT count(*) FROM cards WHERE catalog_id = :catalogId")
-    int cardsCount(long catalogId);
 }
