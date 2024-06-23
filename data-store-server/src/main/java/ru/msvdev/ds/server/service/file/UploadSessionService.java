@@ -17,7 +17,11 @@ import ru.msvdev.ds.server.openapi.model.UploadFileState;
 import ru.msvdev.ds.server.property.UploadSessionProperty;
 import ru.msvdev.ds.server.utils.file.UploadSessionState;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.Base64;
+import java.util.HexFormat;
 import java.util.UUID;
 
 
@@ -182,4 +186,83 @@ public class UploadSessionService {
         return uploadFileResponseMapper.getResponse(uploadSession.id(), UploadFileState.PROCESSING, uploadSession.sha256(), schema, 0);
     }
 
+
+    /**
+     * Удалить устаревшие сеансы выгрузки фрагментов файлов
+     */
+    @Transactional
+    public void deleteObsoleteUploadChunkSessions() {
+        uploadSessionRepository.deleteUploadChunk(
+                UploadSessionState.UPLOAD,
+                OffsetDateTime.now().minus(property.uploadChunkTimeout())
+        );
+    }
+
+
+    /**
+     * Поиск сессий находящихся в состоянии обработки полученных фрагментов файлов
+     *
+     * @return массив идентификаторов найденных сессий
+     */
+    @Transactional(readOnly = true)
+    public long[] findAllProcessingSessionId() {
+        return uploadSessionRepository.findAllIdByState(UploadSessionState.PROCESSING);
+    }
+
+
+    /**
+     * Обработать выгруженные на сервер фрагменты файла
+     *
+     * @param sessionId идентификатор сессии выгрузки фрагментов файла
+     */
+    @Transactional
+    public void processing(long sessionId) throws NoSuchAlgorithmException {
+        // Получить описание сессии
+        UploadSession uploadSession = uploadSessionRepository.findById(sessionId);
+        if (uploadSession == null) return;
+
+
+        // Подсчитать и убедиться в том, что все фрагменты доставлены на сервер
+        int chunkCount = uploadSessionRepository.countChunkNumbers(sessionId, UploadSessionState.PROCESSING);
+        if (chunkCount != uploadSession.chunkCount()) {
+            uploadSessionRepository.updateState(sessionId, UploadSessionState.UPLOAD);
+            return;
+        }
+
+
+        // Проверить контрольную сумму содержимого файла
+        Base64.Decoder base64Decoder = Base64.getDecoder();
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        HexFormat hexFormat = HexFormat.of().withLowerCase();
+        ChunkingSchema chunkingSchema = new ChunkingSchema(
+                uploadSession.size(), uploadSession.chunkCount(), uploadSession.chunkSize(), uploadSession.lastChunkSize()
+        );
+
+        for (int chunkNumber = 1; chunkNumber <= chunkingSchema.count(); chunkNumber++) {
+            String chunkContentString = uploadSessionRepository.findChunkContent(sessionId, chunkNumber);
+            byte[] chunkContentBytes = base64Decoder.decode(chunkContentString);
+
+            if (chunkContentBytes.length != chunkingSchema.getChunkSize(chunkNumber)) {
+                uploadSessionRepository.updateState(sessionId, UploadSessionState.ERROR);
+                return;
+            }
+
+            messageDigest.update(chunkContentBytes);
+        }
+
+        String contentSha256 = hexFormat.formatHex(messageDigest.digest());
+        if (!uploadSession.sha256().equals(contentSha256)) {
+            uploadSessionRepository.updateState(sessionId, UploadSessionState.ERROR);
+            return;
+        }
+
+
+        // Создать контейнер с данными выгруженного на сервер файла
+        boolean insertContainerFlag = containerRepository.insertFromUploadSession(uploadSession.id());
+
+        // Удаляем сессию
+        if (insertContainerFlag) {
+            uploadSessionRepository.delete(uploadSession.id());
+        }
+    }
 }

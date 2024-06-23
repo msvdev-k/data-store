@@ -182,19 +182,51 @@ public class FileControllerTest extends ApplicationTest {
             response = uploadChunkSessionRequest(uploadChunkRequest);
         }
 
+        {
+            assertEquals(UploadFileState.PROCESSING, response.getState());
+            assertEquals(sha256, response.getSha256());
+            assertEquals(schema.size(), response.getSize());
+            assertEquals(schema.count(), response.getChunkCount());
+            assertEquals(schema.chunkSize(), response.getChunkSize());
+            assertEquals(schema.lastChunkSize(), response.getLastChunkSize());
+            assertNotNull(response.getUploadSession());
+            assertNull(response.getUploadNumber());
+            assertNull(response.getUploadOffset());
+            assertNull(response.getUploadSize());
+            assertNull(response.getUploadEnd());
+        }
 
-        assertEquals(UploadFileState.PROCESSING, response.getState());
-        assertEquals(sha256, response.getSha256());
-        assertEquals(schema.size(), response.getSize());
-        assertEquals(schema.count(), response.getChunkCount());
-        assertEquals(schema.chunkSize(), response.getChunkSize());
-        assertEquals(schema.lastChunkSize(), response.getLastChunkSize());
-        assertNotNull(response.getUploadSession());
-        assertNull(response.getUploadNumber());
-        assertNull(response.getUploadOffset());
-        assertNull(response.getUploadSize());
-        assertNull(response.getUploadEnd());
+        // Цикл ожидания проверки выгруженных фрагментов
+        int maxCount = 200;
+        UploadFileRequest uploadFileRequest = new UploadFileRequest(sha256, schema.size());
 
+        for (int i = 0; i < maxCount; i++) {
+            response = openUploadSessionRequest(uploadFileRequest);
+
+            if (response.getState() == UploadFileState.ARCHIVE) {
+                break;
+
+            } else if (response.getState() == UploadFileState.PROCESSING) {
+                Thread.sleep(1000);
+
+            } else {
+                throw new RuntimeException();
+            }
+        }
+
+        {
+            assertEquals(UploadFileState.ARCHIVE, response.getState());
+            assertEquals(sha256, response.getSha256());
+            assertEquals(schema.size(), response.getSize());
+            assertEquals(schema.count(), response.getChunkCount());
+            assertEquals(schema.chunkSize(), response.getChunkSize());
+            assertEquals(schema.lastChunkSize(), response.getLastChunkSize());
+            assertNull(response.getUploadSession());
+            assertNull(response.getUploadNumber());
+            assertNull(response.getUploadOffset());
+            assertNull(response.getUploadSize());
+            assertNull(response.getUploadEnd());
+        }
     }
 
 
