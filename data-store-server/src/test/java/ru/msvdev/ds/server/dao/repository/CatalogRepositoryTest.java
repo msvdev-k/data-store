@@ -1,24 +1,26 @@
 package ru.msvdev.ds.server.dao.repository;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.dao.entity.Catalog;
 import ru.msvdev.ds.server.security.Authority;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
+@Sql({"classpath:db/repository/catalog-repository-test.sql"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CatalogRepositoryTest extends ApplicationTest {
 
@@ -29,193 +31,276 @@ class CatalogRepositoryTest extends ApplicationTest {
         this.catalogRepository = catalogRepository;
     }
 
-    @BeforeEach
-    void setUp() {
-    }
 
-    @AfterEach
-    void tearDown() {
-    }
-
-
-    @Test
-    void crudTest() {
-        String name1 = "Каталог 1";
-
-        String name2 = "Каталог 2";
-        String description2 = "Описание каталога";
+    @ParameterizedTest
+    @CsvSource({
+            "Каталог, Описание каталога",
+            "Catalog, Description",
+            "Название, null"
+    })
+    void insertCatalogTest(String catalogName, String catalogDescription) {
+        // region Given
+        if (catalogDescription.equals("null")) catalogDescription = null;
+        // endregion
 
 
-        // = insert =====================
-
-        Catalog insertedCatalog1 = catalogRepository.insert(name1, null);
-        Catalog insertedCatalog2 = catalogRepository.insert(name2, description2);
-
-        assertTrue(insertedCatalog1.id() > 0);
-        assertEquals(name1, insertedCatalog1.name());
-        assertNull(insertedCatalog1.description());
-
-        assertTrue(insertedCatalog2.id() > 0);
-        assertEquals(name2, insertedCatalog2.name());
-        assertEquals(description2, insertedCatalog2.description());
-
-        System.out.println(insertedCatalog1);
-        System.out.println(insertedCatalog2);
-
-        // = findById ===================
-
-        Optional<Catalog> catalogOptional1 = catalogRepository.findById(insertedCatalog1.id());
-        Optional<Catalog> catalogOptional2 = catalogRepository.findById(insertedCatalog2.id());
-
-        assertTrue(catalogOptional1.isPresent());
-        assertTrue(catalogOptional2.isPresent());
-        assertEquals(insertedCatalog1, catalogOptional1.get());
-        assertEquals(insertedCatalog2, catalogOptional2.get());
-
-        // = updateName =================
-
-        String newName = "Новое название каталога";
-        assertTrue(catalogRepository.updateName(insertedCatalog1.id(), newName));
-
-        Optional<Catalog> optional = catalogRepository.findById(insertedCatalog1.id());
-        assertTrue(optional.isPresent());
-        assertEquals(optional.get().name(), newName);
-
-        // = updateDescription ==========
-
-        String newDescription = "Новое описание каталога";
-        assertTrue(catalogRepository.updateDescription(insertedCatalog1.id(), newDescription));
-
-        optional = catalogRepository.findById(insertedCatalog1.id());
-        assertTrue(optional.isPresent());
-        assertEquals(optional.get().description(), newDescription);
-
-        // = deleteById =================
-
-        assertTrue(catalogRepository.deleteById(insertedCatalog1.id()));
-        assertTrue(catalogRepository.deleteById(insertedCatalog2.id()));
-
-        catalogOptional1 = catalogRepository.findById(insertedCatalog1.id());
-        catalogOptional2 = catalogRepository.findById(insertedCatalog2.id());
-
-        assertTrue(catalogOptional1.isEmpty());
-        assertTrue(catalogOptional2.isEmpty());
-
-    }
+        // region When
+        Catalog insertedCatalog = catalogRepository.insert(catalogName, catalogDescription);
+        // endregion
 
 
-    @Test
-    void authorityTest() {
-        UUID userUuid = UUID.randomUUID();
-
-        Catalog catalog = catalogRepository.insert("Картотека", null);
-        long catalogId = catalog.id();
-
-        Authority[] authorityTypes = Authority.values();
-
-        // = addAuthority ===============
-
-        for (Authority type : authorityTypes) {
-            assertTrue(catalogRepository.addAuthority(catalogId, userUuid, type));
+        // region Then
+        assertTrue(insertedCatalog.id() > 0);
+        assertEquals(catalogName, insertedCatalog.name());
+        assertEquals(catalogDescription, insertedCatalog.description());
+        if (catalogDescription == null) {
+            assertNull(insertedCatalog.description());
         }
+        assertNull(insertedCatalog.authorities());
+        //endregion
+    }
 
-        // = findAllAuthoritiesAsString =
 
-        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
+    @ParameterizedTest
+    @CsvSource({
+            "1, Название каталога, Описание каталога",
+            "2, Книги, Каталог книг",
+            "3, Books, Book catalog",
+            "4, Рецепты, null"
+    })
+    void findCatalogByIdTest(int id, String name, String description) {
+        // region Given
+        if (description.equals("null")) description = null;
+        // endregion
 
+
+        // region When
+        Catalog catalog = catalogRepository.findById(id);
+        // endregion
+
+
+        // region Then
+        assertEquals(id, catalog.id());
+        assertEquals(name, catalog.name());
+        assertEquals(description, catalog.description());
+        assertNull(catalog.authorities());
+        //endregion
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({
+            "1, Новый каталог",
+            "2, New catalog",
+            "3, New Books",
+            "4, Новые рецепты"
+    })
+    void updateCatalogNameTest(int id, String newName) {
+        // region Given
+
+        // endregion
+
+
+        // region When
+        boolean updateFlag = catalogRepository.updateName(id, newName);
+        // endregion
+
+
+        // region Then
+        assertTrue(updateFlag);
+
+        Catalog catalog = catalogRepository.findById(id);
+        assertEquals(id, catalog.id());
+        assertEquals(newName, catalog.name());
+        //endregion
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({
+            "1, Новое описание",
+            "2, Каталог новых книг",
+            "3, New description",
+            "4, null"
+    })
+    void updateCatalogDescriptionTest(int id, String newDescription) {
+        // region Given
+        if (newDescription.equals("null")) newDescription = null;
+        // endregion
+
+
+        // region When
+        boolean updateFlag = catalogRepository.updateDescription(id, newDescription);
+        // endregion
+
+
+        // region Then
+        assertTrue(updateFlag);
+
+        Catalog catalog = catalogRepository.findById(id);
+        assertEquals(id, catalog.id());
+        assertEquals(newDescription, catalog.description());
+        //endregion
+    }
+
+
+    @Test
+    void deleteCatalogByIdTest() {
+        // region Given
+        int id = 1;
+        // endregion
+
+
+        // region When
+        boolean deleteFlag = catalogRepository.deleteById(id);
+        // endregion
+
+
+        // region Then
+        assertTrue(deleteFlag);
+
+        Catalog catalog = catalogRepository.findById(id);
+        assertNull(catalog);
+        //endregion
+    }
+
+
+    @Test
+    void findAllCatalogsTest() {
+        // region Given
+        UUID userUUID = UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272");
+        // endregion
+
+
+        // region When
+        List<Catalog> catalogs = catalogRepository.findAll(userUUID);
+        // endregion
+
+
+        // region Then
+        assertEquals(2, catalogs.size());
+        //endregion
+    }
+
+
+    @Test
+    void findAllUsersTest() {
+        // region Given
+        int catalogId = 1;
+        // endregion
+
+
+        // region When
+        List<UUID> users = catalogRepository.findAllUsers(catalogId);
+        // endregion
+
+
+        // region Then
+        assertEquals(3, users.size());
+
+        assertTrue(users.contains(UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272")));
+        assertTrue(users.contains(UUID.fromString("42b16c80-7987-462b-b16c-807987062be1")));
+        assertTrue(users.contains(UUID.fromString("64f25d2f-953f-4605-b25d-2f953f260558")));
+        //endregion
+    }
+
+
+    @Test
+    void findAllAuthoritiesTest() {
+        // region Given
+        int catalogId = 2;
+        UUID userUUID = UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272");
+        Authority[] authorityTypes = Arrays.stream(Authority.values())
+                .filter(authority -> authority != Authority.MASTER)
+                .toArray(Authority[]::new);
+        // endregion
+
+
+        // region When
+        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUUID);
+        // endregion
+
+
+        // region Then
         assertEquals(authorityTypes.length, authorities.size());
-
-        for (Authority type : authorityTypes) {
-            assertTrue(authorities.contains(type));
+        for (Authority authority : authorityTypes) {
+            assertTrue(authorities.contains(authority));
         }
+        //endregion
+    }
 
-        // = removeAuthority ============
 
-        for (Authority type : authorityTypes) {
-            assertTrue(catalogRepository.removeAuthority(catalogId, userUuid, type));
+    @ParameterizedTest
+    @EnumSource(Authority.class)
+    void addAuthorityToCatalogTest(Authority authority) {
+        // region Given
+        int catalogId = 3;
+        UUID userUUID = UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272");
+        // endregion
+
+
+        // region When
+        boolean addFlag = catalogRepository.addAuthority(catalogId, userUUID, authority);
+        // endregion
+
+
+        // region Then
+        assertTrue(addFlag);
+
+        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUUID);
+        assertEquals(1, authorities.size());
+        assertTrue(authorities.contains(authority));
+        //endregion
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(value = Authority.class, names = {"MASTER"}, mode = EnumSource.Mode.EXCLUDE)
+    void removeAuthorityFromCatalogTest(Authority authority) {
+        // region Given
+        int catalogId = 2;
+        UUID userUUID = UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272");
+        Authority[] authorityTypes = Arrays.stream(Authority.values())
+                .filter(a -> a != Authority.MASTER && a != authority)
+                .toArray(Authority[]::new);
+        // endregion
+
+
+        // region When
+        boolean removeFlag = catalogRepository.removeAuthority(catalogId, userUUID, authority);
+        // endregion
+
+
+        // region Then
+        assertTrue(removeFlag);
+
+        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUUID);
+        assertEquals(authorityTypes.length, authorities.size());
+        for (Authority a : authorityTypes) {
+            assertTrue(authorities.contains(a));
         }
-
-        authorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
-        assertTrue(authorities.isEmpty());
-
-        // = removeAllAuthorities =======
-
-        for (Authority type : authorityTypes) {
-            assertTrue(catalogRepository.addAuthority(catalogId, userUuid, type));
-        }
-        assertTrue(catalogRepository.removeAllAuthorities(catalogId, userUuid));
-
-        authorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
-        assertTrue(authorities.isEmpty());
+        //endregion
     }
 
 
     @Test
-    void findAllTest() {
-        UUID userUuid1 = UUID.randomUUID();
-        UUID userUuid2 = UUID.randomUUID();
+    void removeAllAuthorityFromCatalogTest() {
+        // region Given
+        int catalogId = 2;
+        UUID userUUID = UUID.fromString("bfe5e92a-ba1f-4412-a5e9-2aba1fc41272");
+        // endregion
 
-        Catalog catalog1 = catalogRepository.insert("Картотека 1", null);
-        Catalog catalog2 = catalogRepository.insert("Картотека 2", null);
-        Catalog catalog3 = catalogRepository.insert("Картотека 3", null);
 
-        catalogRepository.addAuthority(catalog1.id(), userUuid1, Authority.MASTER);
-        catalogRepository.addAuthority(catalog2.id(), userUuid1, Authority.MASTER);
-        catalogRepository.addAuthority(catalog3.id(), userUuid1, Authority.MASTER);
+        // region When
+        boolean removeFlag = catalogRepository.removeAllAuthorities(catalogId, userUUID);
+        // endregion
 
-        catalogRepository.addAuthority(catalog1.id(), userUuid2, Authority.READING);
 
-        catalogRepository.addAuthority(catalog2.id(), userUuid2, Authority.WRITING);
-        catalogRepository.addAuthority(catalog2.id(), userUuid2, Authority.FIELD_TEMPLATE_WRITING);
+        // region Then
+        assertTrue(removeFlag);
 
-        // = findAllUsers ===============
-
-        List<UUID> catalog1users = catalogRepository.findAllUsers(catalog1.id());
-        List<UUID> catalog2users = catalogRepository.findAllUsers(catalog2.id());
-        List<UUID> catalog3users = catalogRepository.findAllUsers(catalog3.id());
-
-        assertEquals(2, catalog1users.size());
-        assertEquals(2, catalog2users.size());
-        assertEquals(1, catalog3users.size());
-
-        assertTrue(catalog1users.contains(userUuid1));
-        assertTrue(catalog1users.contains(userUuid2));
-
-        assertTrue(catalog2users.contains(userUuid1));
-        assertTrue(catalog2users.contains(userUuid2));
-
-        assertTrue(catalog3users.contains(userUuid1));
-        assertFalse(catalog3users.contains(userUuid2));
-
-        // = findAll ====================
-
-        List<Catalog> user1Catalogs = catalogRepository.findAll(userUuid1);
-
-        assertEquals(3, user1Catalogs.size());
-        for (Catalog catalog : user1Catalogs) {
-            assertEquals(1, catalog.authorities().length);
-            assertEquals(Authority.MASTER, catalog.authorities()[0]);
-        }
-
-        List<Catalog> user2Catalogs = catalogRepository.findAll(userUuid2);
-
-        assertEquals(2, user2Catalogs.size());
-        for (Catalog catalog : user2Catalogs) {
-            if (catalog.id() == catalog1.id()) {
-                assertEquals(1, catalog.authorities().length);
-                assertEquals(Authority.READING, catalog.authorities()[0]);
-                continue;
-            }
-            if (catalog.id() == catalog2.id()) {
-                assertEquals(2, catalog.authorities().length);
-                List<Authority> authorities = Arrays.asList(catalog.authorities());
-                assertTrue(authorities.contains(Authority.WRITING));
-                assertTrue(authorities.contains(Authority.FIELD_TEMPLATE_WRITING));
-            }
-        }
-
-        user1Catalogs.forEach(System.out::println);
-        user2Catalogs.forEach(System.out::println);
+        List<Authority> authorities = catalogRepository.findAllAuthorities(catalogId, userUUID);
+        assertTrue(authorities.isEmpty());
+        //endregion
     }
-
 }
