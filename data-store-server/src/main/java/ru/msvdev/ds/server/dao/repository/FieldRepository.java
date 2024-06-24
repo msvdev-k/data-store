@@ -7,7 +7,6 @@ import ru.msvdev.ds.server.dao.entity.Field;
 import ru.msvdev.ds.server.utils.type.ValueType;
 
 import java.util.List;
-import java.util.Optional;
 
 
 public interface FieldRepository extends Repository<Field, Long> {
@@ -26,7 +25,7 @@ public interface FieldRepository extends Repository<Field, Long> {
             INNER JOIN field_types AS tp ON tp.id = t.type_id
             WHERE t.id = :id AND t.catalog_id = :catalogId
             """)
-    Optional<Field> findById(long catalogId, long id);
+    Field findById(long catalogId, long id);
 
 
     @Query("""

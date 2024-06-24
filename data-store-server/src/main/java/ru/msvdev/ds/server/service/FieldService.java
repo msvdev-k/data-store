@@ -13,7 +13,6 @@ import ru.msvdev.ds.server.openapi.model.FieldResponse;
 import ru.msvdev.ds.server.openapi.model.FieldTypes;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
@@ -106,22 +105,22 @@ public class FieldService {
             }
         }
 
-        Optional<Field> optionalField = fieldRepository.findById(catalogId, fieldId);
+        Field field = fieldRepository.findById(catalogId, fieldId);
 
-        if (optionalField.isEmpty()) {
+        if (field == null) {
             throw new RuntimeException("Поле не найдено");
         }
 
-        return convert(optionalField.get());
+        return convert(field);
     }
 
 
     @Transactional(readOnly = true)
     public ValueType getValueType(Long catalogId, Long fieldId) {
-        return fieldRepository
-                .findById(catalogId, fieldId)
-                .map(Field::valueType)
-                .orElseThrow();
+        Field field = fieldRepository.findById(catalogId, fieldId);
+        if (field == null)
+            throw new RuntimeException();
+        return field.valueType();
     }
 
 
