@@ -1,59 +1,84 @@
 package ru.msvdev.ds.server.dao.repository.value;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.msvdev.ds.server.dao.entity.Catalog;
-import ru.msvdev.ds.server.dao.entity.file.ChunkingSchema;
-import ru.msvdev.ds.server.dao.repository.CatalogRepository;
-import ru.msvdev.ds.server.dao.repository.file.ContainerRepository;
-import ru.msvdev.ds.server.dao.repository.file.FileRepository;
+import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
+import ru.msvdev.ds.server.base.ApplicationTest;
 
-import java.time.OffsetDateTime;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-class FileIdValueRepositoryTest extends ValueRepositoryTest {
+@DataJdbcTest
+@Sql({"classpath:db/repository/value-repository-test.sql"})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class FileIdValueRepositoryTest extends ApplicationTest {
 
-    private final FileIdValueRepository fileIdValueRepository;
-    private final FileRepository fileRepository;
-    private final CatalogRepository catalogRepository;
-    private final ContainerRepository containerRepository;
-
+    private final FileIdValueRepository valueRepository;
 
     @Autowired
-    public FileIdValueRepositoryTest(FileIdValueRepository fileIdValueRepository, FileRepository fileRepository, CatalogRepository catalogRepository, ContainerRepository containerRepository) {
-        this.fileIdValueRepository = fileIdValueRepository;
-        this.fileRepository = fileRepository;
-        this.catalogRepository = catalogRepository;
-        this.containerRepository = containerRepository;
-    }
-
-    private long fileId;
-
-
-    @BeforeEach
-    void setUp() {
-        Catalog catalog = catalogRepository.insert("Catalog 1", "");
-
-        long size = 1024 * 1024 * 4 + 256 * 1024;
-        int chunkSize = 1024 * 1024;
-        int minChunkSize = 512 * 1024;
-        ChunkingSchema fileChunking = ChunkingSchema.of(size, chunkSize, minChunkSize);
-
-        long containerId = containerRepository.insert(
-                "f5d343132f7ab1938e186ce599d75fca793022331deb73e544bddbe95538c742",
-                fileChunking.size(), fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-
-        fileRepository.insertRoot(catalog.id(), OffsetDateTime.now());
-        fileId = fileRepository.insertFile(catalog.id(), "File Name", containerId, "application/pdf", OffsetDateTime.now());
+    public FileIdValueRepositoryTest(FileIdValueRepository valueRepository) {
+        this.valueRepository = valueRepository;
     }
 
 
     @Test
-    void baseTest() {
-        baseFindInsertTest(fileIdValueRepository, fileId, Assertions::assertEquals);
+    void findIdByValue() {
+        // region Given
+        long id = 31;
+        long value = 1;
+        // endregion
+
+        // region When
+        Long idByValue = valueRepository.findIdByValue(value);
+        // endregion
+
+        // region Then
+        assertNotNull(idByValue);
+        assertEquals(id, idByValue);
+        //endregion
     }
+
+
+    @Test
+    void findValueById() {
+        // region Given
+        long id = 31;
+        long value = 1;
+        // endregion
+
+        // region When
+        Long valueById = valueRepository.findValueById(id);
+        // endregion
+
+        // region Then
+        assertNotNull(valueById);
+        assertEquals(value, valueById);
+        //endregion
+    }
+
+
+    @Test
+    void insert() {
+        // region Given
+        long id = 37;
+        long value = 2;
+        // endregion
+
+        // region When
+        Long insertedId = valueRepository.insert(value);
+        // endregion
+
+        // region Then
+        assertEquals(id, insertedId);
+
+        Long valueById = valueRepository.findValueById(insertedId);
+        assertNotNull(valueById);
+        assertEquals(value, valueById);
+        //endregion
+    }
+
 
 }
