@@ -2,7 +2,6 @@ package ru.msvdev.ds.server.dao.repository.value;
 
 import org.springframework.data.jdbc.repository.query.Query;
 
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -10,12 +9,12 @@ public interface UuidValueRepository extends ValueRepository<UUID> {
 
     @Override
     @Query("SELECT id FROM uuid_values WHERE value = :value")
-    Optional<Long> findIdByValue(UUID value);
+    Long findIdByValue(UUID value);
 
 
     @Override
     @Query("SELECT value FROM uuid_values WHERE id = :id")
-    Optional<UUID> findValueById(Long id);
+    UUID findValueById(Long id);
 
 
     @Override

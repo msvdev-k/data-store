@@ -15,18 +15,15 @@ public abstract class BaseValueService<T> implements ValueService {
     @Override
     public Long put(String valueString) {
         T value = getConverter().fromString(valueString);
-
-        return getRepository()
-                .findIdByValue(value)
-                .orElseGet(() -> getRepository().insert(value));
+        Long valueId = getRepository().findIdByValue(value);
+        return (valueId != null) ? valueId : getRepository().insert(value);
     }
 
 
     @Override
     public String get(Long id) {
-        return getRepository()
-                .findValueById(id)
-                .map(getConverter()::toString)
-                .orElseThrow();
+        T value = getRepository().findValueById(id);
+        if (value == null) throw new RuntimeException();
+        return getConverter().toString(value);
     }
 }

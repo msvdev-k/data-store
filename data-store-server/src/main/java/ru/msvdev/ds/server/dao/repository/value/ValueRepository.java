@@ -4,8 +4,6 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
 import ru.msvdev.ds.server.dao.entity.Value;
 
-import java.util.Optional;
-
 
 @NoRepositoryBean
 public interface ValueRepository<V> extends Repository<Value, Long> {
@@ -16,7 +14,7 @@ public interface ValueRepository<V> extends Repository<Value, Long> {
      * @param value заданное значение
      * @return идентификатор найденного значения
      */
-    Optional<Long> findIdByValue(V value);
+    Long findIdByValue(V value);
 
 
     /**
@@ -25,7 +23,7 @@ public interface ValueRepository<V> extends Repository<Value, Long> {
      * @param id идентификатор
      * @return найденное значение
      */
-    Optional<V> findValueById(Long id);
+    V findValueById(Long id);
 
 
     /**

@@ -2,8 +2,6 @@ package ru.msvdev.ds.server.dao.repository.value;
 
 import org.springframework.data.jdbc.repository.query.Query;
 
-import java.util.Optional;
-
 
 public interface JsonValueRepository extends ValueRepository<String> {
 
@@ -16,12 +14,12 @@ public interface JsonValueRepository extends ValueRepository<String> {
             FROM json_values AS t1
             INNER JOIN jsonb_value AS t2 ON t1.value @> t2.value AND t1.value <@ t2.value
             """)
-    Optional<Long> findIdByValue(String value);
+    Long findIdByValue(String value);
 
 
     @Override
     @Query("SELECT value FROM json_values WHERE id = :id")
-    Optional<String> findValueById(Long id);
+    String findValueById(Long id);
 
 
     @Override

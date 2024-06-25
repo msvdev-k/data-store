@@ -2,19 +2,17 @@ package ru.msvdev.ds.server.dao.repository.value;
 
 import org.springframework.data.jdbc.repository.query.Query;
 
-import java.util.Optional;
-
 
 public interface DoubleValueRepository extends ValueRepository<Double> {
 
     @Override
     @Query("SELECT id FROM double_values WHERE value = :value")
-    Optional<Long> findIdByValue(Double value);
+    Long findIdByValue(Double value);
 
 
     @Override
     @Query("SELECT value FROM double_values WHERE id = :id")
-    Optional<Double> findValueById(Long id);
+    Double findValueById(Long id);
 
 
     @Override
