@@ -3,9 +3,9 @@ package ru.msvdev.ds.server.dao.entity;
 import ru.msvdev.ds.server.utils.type.ValueType;
 
 public record Tag(
-        Long cardId,
-        Long fieldId,
+        long cardId,
+        long fieldId,
         ValueType valueType,
-        Long valueId
+        long valueId
 ) {
 }
