@@ -61,7 +61,7 @@ public class TagService {
             if (valueService != null) {
                 Long valueId = valueService.put(value);
 
-                if (tagRepository.isExists(cardId, fieldId, valueId)) continue;
+                if (tagRepository.exists(cardId, fieldId, valueId)) continue;
 
                 if (!tagRepository.insert(cardId, fieldId, valueId)) {
                     throw new RuntimeException("Тег вставить не удалось");

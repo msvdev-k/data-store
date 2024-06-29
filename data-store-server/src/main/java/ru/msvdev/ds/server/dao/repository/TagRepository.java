@@ -11,7 +11,7 @@ import java.util.List;
 public interface TagRepository extends Repository<Tag, Tag> {
 
     @Query("SELECT EXISTS(SELECT * FROM tags WHERE card_id = :cardId AND field_id = :fieldId AND value_id = :valueId)")
-    boolean isExists(long cardId, long fieldId, long valueId);
+    boolean exists(long cardId, long fieldId, long valueId);
 
 
     @Query("""
