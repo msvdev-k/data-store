@@ -1,17 +1,14 @@
 package ru.msvdev.ds.server.dao.repository;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.Card;
-import ru.msvdev.ds.server.dao.entity.Catalog;
-import ru.msvdev.ds.server.dao.entity.Field;
 import ru.msvdev.ds.server.dao.entity.Tag;
-import ru.msvdev.ds.server.utils.type.ConstantValue;
 import ru.msvdev.ds.server.utils.type.ValueType;
 
 import java.util.List;
@@ -20,107 +17,166 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
+@Sql({"classpath:db/repository/tag-repository-test.sql"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TagRepositoryTest extends ApplicationTest {
 
-    private final CatalogRepository catalogRepository;
-    private final FieldRepository fieldRepository;
-    private final CardRepository cardRepository;
     private final TagRepository tagRepository;
 
     @Autowired
-    TagRepositoryTest(CatalogRepository catalogRepository, FieldRepository fieldRepository, CardRepository cardRepository, TagRepository tagRepository) {
-        this.catalogRepository = catalogRepository;
-        this.fieldRepository = fieldRepository;
-        this.cardRepository = cardRepository;
+    TagRepositoryTest(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
     }
 
 
-    private Catalog catalog;
-    private Card card;
-    private Field fieldNull;
-    private Field fieldBoolean;
+    @ParameterizedTest
+    @CsvSource({
+            "41, 21, 51, true",
+            "41, 22, 52, true",
+            "41, 23, 53, true",
+            "41, 24, 54, true",
+            "41, 25, 55, true",
+            "41, 26, 56, true",
+            "41, 27, 57, true",
+            "41, 28, 58, true",
+            "41, 29, 59, true",
+            "41, 30, 60, true",
+            "41, 31, 61, true",
+            "41, 32, 62, true",
+            "41, 32, 67, false"
+    })
+    void exists(long cardId, long fieldId, long valueId, boolean expectedResult) {
+        // region Given
+        // endregion
 
-    @BeforeEach
-    void setUp() {
-        catalog = catalogRepository.insert("Каталог", null);
-        card = cardRepository.insert(catalog.id());
-        fieldNull = fieldRepository.insert(catalog.id(), 1, "fieldNull", ValueType.NULL, null, null);
-        fieldBoolean = fieldRepository.insert(catalog.id(), 2, "fieldBoolean", ValueType.BOOLEAN, null, null);
-    }
+        // region When
+        boolean actualResult = tagRepository.exists(cardId, fieldId, valueId);
+        // endregion
 
-    @AfterEach
-    void tearDown() {
+        // region Then
+        assertEquals(expectedResult, actualResult);
+        // endregion
     }
 
 
     @Test
-    void crudTest() {
+    void findAll() {
+        // region Given
+        long catalogID = 1;
+        long cardId = 41;
 
-        // = insert =====================
-        assertTrue(tagRepository.insert(card.id(), fieldNull.id(), ConstantValue.NULL.id));
-        assertTrue(tagRepository.insert(card.id(), fieldBoolean.id(), ConstantValue.TRUE.id));
+        Tag[] tags = new Tag[]{
+                new Tag(41, 21, ValueType.NULL, 51),
+                new Tag(41, 22, ValueType.INTEGER, 52),
+                new Tag(41, 23, ValueType.DOUBLE, 53),
+                new Tag(41, 24, ValueType.BIG_DECIMAL, 54),
+                new Tag(41, 25, ValueType.STRING, 55),
+                new Tag(41, 26, ValueType.TEXT, 56),
+                new Tag(41, 27, ValueType.DATE, 57),
+                new Tag(41, 28, ValueType.DATETIME, 58),
+                new Tag(41, 29, ValueType.BOOLEAN, 59),
+                new Tag(41, 30, ValueType.BYTES, 60),
+                new Tag(41, 31, ValueType.UUID, 61),
+                new Tag(41, 32, ValueType.JSON, 62),
+                new Tag(41, 33, ValueType.FILE_ID, 63)
+        };
+        // endregion
 
+        // region When
+        List<Tag> foundTags = tagRepository.findAll(catalogID, cardId);
+        // endregion
 
-        // = isExists ===================
-        assertTrue(tagRepository.isExists(card.id(), fieldNull.id(), ConstantValue.NULL.id));
-        assertTrue(tagRepository.isExists(card.id(), fieldBoolean.id(), ConstantValue.TRUE.id));
-        assertFalse(tagRepository.isExists(card.id(), fieldBoolean.id(), ConstantValue.FALSE.id));
-
-
-        // = findAll ====================
-        List<Tag> tags = tagRepository.findAll(catalog.id(), card.id());
-
-        assertFalse(tags.isEmpty());
-        assertEquals(2, tags.size());
-
-        for (Tag tag : tags) {
-            assertEquals(card.id(), tag.cardId());
+        // region Then
+        assertEquals(tags.length, foundTags.size());
+        for (Tag t : tags) {
+            assertTrue(foundTags.contains(t));
         }
+        // endregion
+    }
 
-        List<Long> fieldIdList = tags.stream().map(Tag::fieldId).toList();
-        List<ValueType> valueTypeList = tags.stream().map(Tag::valueType).toList();
-        List<Long> valueIdList = tags.stream().map(Tag::valueId).toList();
+    @Test
+    void insert() {
+        // region Given
+        long cardId = 41;
+        long fieldId = 22;
+        long valueId = 67;
+        // endregion
 
-        assertTrue(fieldIdList.contains(fieldNull.id()));
-        assertTrue(fieldIdList.contains(fieldBoolean.id()));
+        // region When
+        boolean insertedFlag = tagRepository.insert(cardId, fieldId, valueId);
+        // endregion
 
-        assertTrue(valueTypeList.contains(ValueType.NULL));
-        assertTrue(valueTypeList.contains(ValueType.BOOLEAN));
+        // region Then
+        assertTrue(insertedFlag);
+        assertTrue(tagRepository.exists(cardId, fieldId, valueId));
+        // endregion
+    }
 
-        assertTrue(valueIdList.contains(ConstantValue.NULL.id));
-        assertTrue(valueIdList.contains(ConstantValue.TRUE.id));
 
+    @ParameterizedTest
+    @CsvSource({
+            "41, 21, 51",
+            "41, 22, 52",
+            "41, 23, 53",
+            "41, 24, 54",
+            "41, 25, 55",
+            "41, 26, 56",
+            "41, 27, 57",
+            "41, 28, 58",
+            "41, 29, 59",
+            "41, 30, 60",
+            "41, 31, 61",
+            "41, 32, 62",
+            "41, 32, 67"
+    })
+    void delete(long cardId, long fieldId, long valueId) {
+        // region Given
+        long catalogId = 1;
+        // endregion
 
-        // = delete =====================
-        assertTrue(tagRepository.delete(catalog.id(), card.id()));
+        // region When
+        boolean deleteFlag = tagRepository.delete(catalogId, cardId, fieldId);
+        // endregion
 
-        tags = tagRepository.findAll(catalog.id(), card.id());
-        assertTrue(tags.isEmpty());
-
+        // region Then
+        assertTrue(deleteFlag);
+        assertFalse(tagRepository.exists(cardId, fieldId, valueId));
+        // endregion
     }
 
 
     @Test
-    void deleteTagTest() {
-        // = insert =====================
-        assertTrue(tagRepository.insert(card.id(), fieldNull.id(), ConstantValue.NULL.id));
-        assertTrue(tagRepository.insert(card.id(), fieldBoolean.id(), ConstantValue.TRUE.id));
+    void deleteAll() {
+        // region Given
+        long catalogId = 1;
+        long cardId = 41;
 
+        Tag[] tags = new Tag[]{
+                new Tag(41, 21, ValueType.NULL, 51),
+                new Tag(41, 22, ValueType.INTEGER, 52),
+                new Tag(41, 23, ValueType.DOUBLE, 53),
+                new Tag(41, 24, ValueType.BIG_DECIMAL, 54),
+                new Tag(41, 25, ValueType.STRING, 55),
+                new Tag(41, 26, ValueType.TEXT, 56),
+                new Tag(41, 27, ValueType.DATE, 57),
+                new Tag(41, 28, ValueType.DATETIME, 58),
+                new Tag(41, 29, ValueType.BOOLEAN, 59),
+                new Tag(41, 30, ValueType.BYTES, 60),
+                new Tag(41, 31, ValueType.UUID, 61),
+                new Tag(41, 32, ValueType.JSON, 62),
+                new Tag(41, 33, ValueType.FILE_ID, 63)
+        };
+        // endregion
 
-        // = delete =====================
-        assertTrue(tagRepository.delete(catalog.id(), card.id(), fieldNull.id()));
+        // region When
+        boolean deleteFlag = tagRepository.delete(catalogId, cardId);
+        // endregion
 
-        List<Tag> tags = tagRepository.findAll(catalog.id(), card.id());
-        assertFalse(tags.isEmpty());
-        assertEquals(1, tags.size());
-
-        Tag tag = tags.get(0);
-        assertEquals(card.id(), tag.cardId());
-        assertEquals(fieldBoolean.id(), tag.fieldId());
-        assertEquals(ValueType.BOOLEAN, tag.valueType());
-        assertEquals(ConstantValue.TRUE.id, tag.valueId());
+        // region Then
+        assertTrue(true);
+        for (Tag t : tags) {
+            assertFalse(tagRepository.exists(t.cardId(), t.fieldId(), t.valueId()));
+        }
+        // endregion
     }
-
 }
