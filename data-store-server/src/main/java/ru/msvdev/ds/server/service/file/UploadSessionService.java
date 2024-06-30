@@ -139,7 +139,7 @@ public class UploadSessionService {
         Long uploadSessionId = uploadSessionRepository.insert(UploadSessionState.UPLOAD, uploadFileRequest.getSha256(),
                 schema.size(), schema.count(), schema.chunkSize(), schema.lastChunkSize());
 
-        Long chunkId = chunkRepository.insert(schema.getChunkSize(ChunkingSchema.FIRST_CHUNK_NUMBER), EMPTY_CHUNK_CONTENT);
+        Long chunkId = chunkRepository.insertContent(EMPTY_CHUNK_CONTENT);
 
         boolean insertChunkFlag = uploadSessionRepository.insertUploadChunk(
                 userUUID, uploadSessionId, chunkId, ChunkingSchema.FIRST_CHUNK_NUMBER,
@@ -169,7 +169,7 @@ public class UploadSessionService {
         for (int i = 1; i <= schema.count(); i++) {
             if (i <= chunkNumbers.length && chunkNumbers[i - 1] == i) continue;
 
-            Long chunkId = chunkRepository.insert(schema.getChunkSize(i), EMPTY_CHUNK_CONTENT);
+            Long chunkId = chunkRepository.insertContent(EMPTY_CHUNK_CONTENT);
             boolean insertChunkResult = uploadSessionRepository.insertUploadChunk(
                     userUUID, uploadSession.id(), chunkId, i,
                     UploadSessionState.UPLOAD, OffsetDateTime.now());

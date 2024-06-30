@@ -1,21 +1,19 @@
 package ru.msvdev.ds.server.dao.repository.file;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.file.Chunk;
-
-import java.util.Base64;
-import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
+@Sql({"classpath:db/repository/file/chunk-repository-test.sql"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ChunkRepositoryTest extends ApplicationTest {
 
@@ -27,63 +25,73 @@ class ChunkRepositoryTest extends ApplicationTest {
     }
 
 
-    @BeforeEach
-    void setUp() {
-    }
+    @ParameterizedTest
+    @CsvSource({
+            "1, aXVuZnE5NzHvv70yM240MW4zNCA5MzIxODMgYDgtIDFgMDI=",
+            "2, aXVuZmpHc2RoBmg4NzNneTRyYjNmYyA=",
+            "3, null"
+    })
+    void findContent(long id, String content) {
+        // region Given
+        if (content.equals("null")) content = null;
+        // endregion
 
-    @AfterEach
-    void tearDown() {
+
+        // region When
+        String fountContent = chunkRepository.findContent(id);
+        // endregion
+
+
+        // region Then
+        if (content != null) {
+            assertNotNull(fountContent);
+            assertEquals(content, fountContent);
+        } else {
+            assertNull(fountContent);
+        }
+        // endregion
     }
 
 
     @Test
-    void crudTest() {
-
-        int size = 1024 * 1024; // 1M
-
-        byte[] bytes = new byte[size];
-        Random rnd = new Random();
-        rnd.nextBytes(bytes);
-        String content = Base64.getEncoder().encodeToString(bytes);
+    void insertContent() {
+        // region Given
+        long id = 37;
+        String content = "dmZnZg==";
+        // endregion
 
 
-        // = insert =====================
-
-        Long chunkId = chunkRepository.insert(size, content);
-
-        assertNotNull(chunkId);
+        // region When
+        Long insertedId = chunkRepository.insertContent(content);
+        // endregion
 
 
-        // = findById ===================
+        // region Then
+        assertNotNull(insertedId);
+        assertEquals(id, insertedId);
 
-        Chunk chunk1 = chunkRepository.findById(chunkId);
-
-        assertNotNull(chunk1);
-        assertEquals(size, chunk1.size());
-        assertEquals(content, chunk1.content());
-        assertEquals(-1, chunk1.number());
-
-
-        // = updateContent ==============
-        rnd.nextBytes(bytes);
-        String content2 = Base64.getEncoder().encodeToString(bytes);
-        assertNotEquals(content, content2);
-
-        assertTrue(chunkRepository.updateContent(chunkId, content2));
-
-        Chunk chunk2 = chunkRepository.findById(chunkId);
-        assertNotNull(chunk2);
-        assertEquals(size, chunk2.size());
-        assertEquals(content2, chunk2.content());
-        assertEquals(-1, chunk2.number());
+        assertEquals(content, chunkRepository.findContent(id));
+        // endregion
+    }
 
 
-        // = deleteById =================
+    @Test
+    void updateContent() {
+        // region Given
+        long id = 1;
+        String newContent = "dmZnZg==";
+        // endregion
 
-        assertTrue(chunkRepository.deleteById(chunkId));
 
-        Chunk chunk3 = chunkRepository.findById(chunkId);
-        assertNull(chunk3);
+        // region When
+        boolean updateFlag = chunkRepository.updateContent(id, newContent);
+        // endregion
+
+
+        // region Then
+        assertTrue(updateFlag);
+        assertEquals(newContent, chunkRepository.findContent(id));
+        // endregion
     }
 
 }

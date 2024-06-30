@@ -11,25 +11,22 @@ import ru.msvdev.ds.server.dao.entity.file.Chunk;
  */
 public interface ChunkRepository extends Repository<Chunk, Long> {
 
-    @Query("SELECT size, content, -1 AS number FROM chunks WHERE id = :chunkId")
-    Chunk findById(long chunkId);
+    @Query("SELECT content FROM chunks WHERE id = :chunkId")
+    String findContent(long chunkId);
 
 
     @Query("""
             WITH inserted_chunk AS (
-                INSERT INTO chunks (size, content) VALUES (:size, :content)
+                INSERT INTO chunks (content) VALUES (:content)
                 RETURNING id
             )
             SELECT id FROM inserted_chunk
             """)
-    Long insert(int size, String content);
+    Long insertContent(String content);
 
 
     @Modifying
     @Query("UPDATE chunks SET content = :content WHERE id = :chunkId")
     boolean updateContent(long chunkId, String content);
 
-    @Modifying
-    @Query("DELETE FROM chunks WHERE id = :chunkId")
-    boolean deleteById(long chunkId);
 }

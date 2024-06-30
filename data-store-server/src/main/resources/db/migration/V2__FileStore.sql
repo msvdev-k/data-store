@@ -23,9 +23,8 @@ ALTER TABLE "containers" ADD CONSTRAINT "containers_unique_sha256" UNIQUE ("sha2
 -- Таблица фрагментов бинарных данных содержащихся в контейнерах --
 -- ------------------------------------------------------------- --
 CREATE TABLE "chunks" (
-    "id"      BIGINT  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    "size"    INTEGER NOT NULL, -- Размер фрагмента данных контейнера (байт)
-    "content" TEXT    NOT NULL  -- Содержимое фрагмента данных контейнера в виде строки Base64
+    "id"      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    "content" TEXT   NOT NULL -- Содержимое фрагмента данных контейнера в виде строки Base64
 );
 
 
