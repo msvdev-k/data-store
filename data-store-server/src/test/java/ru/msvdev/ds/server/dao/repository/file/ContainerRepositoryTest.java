@@ -1,197 +1,208 @@
 package ru.msvdev.ds.server.dao.repository.file;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.file.Chunk;
 import ru.msvdev.ds.server.dao.entity.file.ContainerHeader;
-import ru.msvdev.ds.server.dao.entity.file.ChunkingSchema;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
+@Sql({"classpath:db/repository/file/container-repository-test.sql"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class ContainerRepositoryTest extends ApplicationTest {
 
     private final ContainerRepository containerRepository;
-    private final ChunkRepository chunkRepository;
 
     @Autowired
-    public ContainerRepositoryTest(ContainerRepository containerRepository, ChunkRepository chunkRepository) {
+    public ContainerRepositoryTest(ContainerRepository containerRepository) {
         this.containerRepository = containerRepository;
-        this.chunkRepository = chunkRepository;
-    }
-
-    private ChunkingSchema chunkingSchema;
-    private long[] chunkIdArray;
-
-
-    @BeforeEach
-    void setUp() {
-        long size = 1024 * 1024 * 4 + 256 * 1024;
-        int chunkSize = 1024 * 1024;
-        int minChunkSize = 512 * 1024;
-
-        chunkingSchema = ChunkingSchema.of(size, chunkSize, minChunkSize);
-        assertTrue(chunkingSchema.isValid());
-        System.out.println(chunkingSchema);
-
-        chunkIdArray = new long[chunkingSchema.count()];
-        for (int i = 0; i < chunkingSchema.count() - 1; i++) {
-            Long chunkId = chunkRepository.insert(chunkingSchema.chunkSize(), "content");
-            assertNotNull(chunkId);
-            chunkIdArray[i] = chunkId;
-        }
-        Long chunkId = chunkRepository.insert(chunkingSchema.lastChunkSize(), "content");
-        assertNotNull(chunkId);
-        chunkIdArray[chunkingSchema.count() - 1] = chunkId;
-    }
-
-    @AfterEach
-    void tearDown() {
     }
 
 
     @Test
-    void crudTest() {
-        String sha256 = "250d1c665ad54084191353cafbf502c8dad84ed659a804143a00335d790a6996";
-        long size = chunkingSchema.size();
-        int chunkCount = chunkingSchema.count();
-        int chunkSize = chunkingSchema.chunkSize();
-        int lastChunkSize = chunkingSchema.lastChunkSize();
+    void findEmptyContainer() {
+        // region Given
+        String emptySha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        long size = 0;
+        int chunkCount = 0;
+        int chunkSize = 0;
+        int lastChunkSize = 0;
+        // endregion
 
 
-        // = insert =============================
-        Long containerId = containerRepository.insert(
-                sha256, size, chunkCount, chunkSize, lastChunkSize
-        );
-
-        assertNotNull(containerId);
-
-
-        // = findById ===========================
-        ContainerHeader containerHeaderById = containerRepository.findById(containerId);
-
-        assertNotNull(containerHeaderById);
-        assertEquals(containerId, containerHeaderById.id());
-        assertEquals(sha256, containerHeaderById.sha256());
-        assertEquals(size, containerHeaderById.size());
-        assertEquals(chunkCount, containerHeaderById.chunkCount());
-        assertEquals(chunkSize, containerHeaderById.chunkSize());
-        assertEquals(lastChunkSize, containerHeaderById.lastChunkSize());
-
-
-        // = findBySha256 =======================
-        ContainerHeader containerHeaderBySha256 = containerRepository.findBySha256(sha256);
-
-        assertNotNull(containerHeaderBySha256);
-        assertEquals(containerId, containerHeaderBySha256.id());
-        assertEquals(sha256, containerHeaderBySha256.sha256());
-        assertEquals(size, containerHeaderBySha256.size());
-        assertEquals(chunkCount, containerHeaderBySha256.chunkCount());
-        assertEquals(chunkSize, containerHeaderBySha256.chunkSize());
-        assertEquals(lastChunkSize, containerHeaderBySha256.lastChunkSize());
-
-
-        // = findIdBySha256 =====================
-        Long containerIdBySha256 = containerRepository.findIdBySha256(sha256);
-
-        assertNotNull(containerIdBySha256);
-        assertEquals(containerId, containerIdBySha256);
-
-
-        // = existSha256 ========================
-        assertTrue(containerRepository.existSha256(sha256));
-    }
-
-
-    @Test
-    void insertFindChunkTest() {
-        String sha256 = "250d1c665ad54084191353cafbf502c8dad84ed659a804143a00335d790a6996";
-        long size = chunkingSchema.size();
-        int chunkCount = chunkingSchema.count();
-        int chunkSize = chunkingSchema.chunkSize();
-        int lastChunkSize = chunkingSchema.lastChunkSize();
-
-        // = insert =============================
-        Long containerId = containerRepository.insert(sha256, size, chunkCount, chunkSize, lastChunkSize);
-        assertNotNull(containerId);
-
-
-        // = insertChunk ========================
-        for (int i = 0; i < chunkCount; i++) {
-            assertTrue(
-                    containerRepository.insertChunk(containerId, chunkIdArray[i], i + 1)
-            );
-        }
-
-
-        // = findChunk ==========================
-        for (int i = 0; i < chunkCount; i++) {
-            int chunkNumber = i + 1;
-            Chunk chunk = containerRepository.findChunk(containerId, chunkNumber);
-
-            assertNotNull(chunk);
-            assertEquals(chunkingSchema.getChunkSize(chunkNumber), chunk.size());
-            assertEquals("content", chunk.content());
-            assertEquals(chunkNumber, chunk.number());
-        }
-    }
-
-
-    @Test
-    void findEmptyContainerTest() {
+        // region When
         ContainerHeader emptyContainer = containerRepository.findEmptyContainer();
+        // endregion
 
+
+        // region Then
         assertNotNull(emptyContainer);
+        assertEquals(emptySha256, emptyContainer.sha256());
+        assertEquals(size, emptyContainer.size());
+        assertEquals(chunkCount, emptyContainer.chunkCount());
+        assertEquals(chunkSize, emptyContainer.chunkSize());
+        assertEquals(lastChunkSize, emptyContainer.lastChunkSize());
 
         System.out.println("Empty Container ID: " + emptyContainer.id());
+        // endregion
 
-        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", emptyContainer.sha256());
-        assertEquals(0, emptyContainer.chunkCount());
-        assertEquals(0, emptyContainer.size());
-        assertEquals(0, emptyContainer.chunkSize());
-        assertEquals(0, emptyContainer.lastChunkSize());
     }
 
 
     @Test
-    void deleteByIdTest() {
-        String sha256 = "250d1c665ad54084191353cafbf502c8dad84ed659a804143a00335d790a6996";
-        long size = chunkingSchema.size();
-        int chunkCount = chunkingSchema.count();
-        int chunkSize = chunkingSchema.chunkSize();
-        int lastChunkSize = chunkingSchema.lastChunkSize();
+    void findById() {
+        // region Given
+        long id = 20;
+        String sha256 = "eab0053353806d62467da0b5719254c3806887ecbca61ccb65cda790f48b0252";
+        long size = 134;
+        int chunkCount = 4;
+        int chunkSize = 32;
+        int lastChunkSize = 38;
+        // endregion
 
-        // = insert =============================
-        Long containerId = containerRepository.insert(sha256, size, chunkCount, chunkSize, lastChunkSize);
-        assertNotNull(containerId);
 
-        // = insertChunk ========================
+        // region When
+        ContainerHeader containerHeader = containerRepository.findById(id);
+        // endregion
+
+
+        // region Then
+        assertNotNull(containerHeader);
+        assertEquals(id, containerHeader.id());
+        assertEquals(sha256, containerHeader.sha256());
+        assertEquals(size, containerHeader.size());
+        assertEquals(chunkCount, containerHeader.chunkCount());
+        assertEquals(chunkSize, containerHeader.chunkSize());
+        assertEquals(lastChunkSize, containerHeader.lastChunkSize());
+        // endregion
+    }
+
+
+    @Test
+    void findBySha256() {
+        // region Given
+        long id = 20;
+        String sha256 = "eab0053353806d62467da0b5719254c3806887ecbca61ccb65cda790f48b0252";
+        long size = 134;
+        int chunkCount = 4;
+        int chunkSize = 32;
+        int lastChunkSize = 38;
+        // endregion
+
+
+        // region When
+        ContainerHeader containerHeader = containerRepository.findBySha256(sha256);
+        // endregion
+
+
+        // region Then
+        assertNotNull(containerHeader);
+        assertEquals(id, containerHeader.id());
+        assertEquals(sha256, containerHeader.sha256());
+        assertEquals(size, containerHeader.size());
+        assertEquals(chunkCount, containerHeader.chunkCount());
+        assertEquals(chunkSize, containerHeader.chunkSize());
+        assertEquals(lastChunkSize, containerHeader.lastChunkSize());
+        // endregion
+    }
+
+
+    @Test
+    void insertFromUploadSession() {
+        // region Given
+        long uploadSessionId = 5;
+        String sha256 = "1350b3ccbac695c62f55787f54fb60e838c8f4767afe4d5a577ecb96a1ec19c6";
+        long size = 214;
+        int chunkCount = 7;
+        int chunkSize = 32;
+        int lastChunkSize = 22;
+
+        long containerId = 37;
+
+        String[] chunkStrings = new String[]{
+                "jDtfw0ackTV7voJilcywvcV0BPPt4DMOBIwcTN1QBuE=",
+                "YpXriML4NngZOtAVKIRUAmYWdxyw7yj4IBYlkYriQM8=",
+                "VkZxervyWWOdAajCxYyTPfs4j5N1frYRj3F9jNrdBH8=",
+                "ZW/MO7aAcQwagAmR40XW/TN8ip+LYcLAZfTU4iB+nQQ=",
+                "EihQoG4nxlnFZOAHTmqGioPat463KtKpGtcEpj87wfw=",
+                "4ErVGVIMeh15gxPep6YXO6C9Vjqy43EoC51c0jNI/eE=",
+                "2VEmSQXYkME0RV8d338cRQYjlAqpmA=="
+        };
+        // endregion
+
+
+        // region When
+        boolean insertFlag = containerRepository.insertFromUploadSession(uploadSessionId);
+        // endregion
+
+
+        // region Then
+        assertTrue(insertFlag);
+
+        ContainerHeader containerHeader = containerRepository.findBySha256(sha256);
+        assertEquals(containerId, containerHeader.id());
+        assertEquals(sha256, containerHeader.sha256());
+        assertEquals(size, containerHeader.size());
+        assertEquals(chunkCount, containerHeader.chunkCount());
+        assertEquals(chunkSize, containerHeader.chunkSize());
+        assertEquals(lastChunkSize, containerHeader.lastChunkSize());
+
         for (int i = 0; i < chunkCount; i++) {
-            assertTrue(containerRepository.insertChunk(containerId, chunkIdArray[i], i + 1));
+            assertEquals(chunkStrings[i], containerRepository.findChunkContent(containerId, i + 1));
         }
+        // endregion
+    }
 
 
-        // = deleteById =========================
-        assertTrue(
-                containerRepository.deleteById(containerId)
-        );
+    @ParameterizedTest
+    @CsvSource({
+            "20, 0, null",
+            "20, 1, 4UH4+gyc0GV6IoLnxN96hcQH2kmmWg/vxysxXKu4VFE=",
+            "20, 2, wHj7vIJkq61M79rZqLnJy3DaRe2mOM3cMZI2ghq1H/I=",
+            "20, 3, rWG4uz5U7yjPs+r2+kPjVw+CqdbTpc3f3jLyLy0OHu4=",
+            "20, 4, szFP1rx//PPSoKW7GcQ43T4loXTUvdfVgQde0nudCooiSFRkbBI=",
+            "20, 5, null"
+    })
+    void findChunkContent(long containerId, int chunkNumber, String expectedContent) {
+        // region Given
+        if (expectedContent.equals("null")) expectedContent = null;
+        // endregion
 
 
-        // проверка удаления фрагментов
+        // region When
+        String foundContent = containerRepository.findChunkContent(containerId, chunkNumber);
+        // endregion
+
+
+        // region Then
+        assertEquals(expectedContent, foundContent);
+        // endregion
+    }
+
+
+    @Test
+    void deleteById() {
+        // region Given
+        long containerId = 20;
+        // endregion
+
+
+        // region When
+        boolean deleteFlag = containerRepository.deleteById(containerId);
+        // endregion
+
+
+        // region Then
+        assertTrue(deleteFlag);
         assertNull(containerRepository.findById(containerId));
-        for (int i = 0; i < chunkCount; i++) {
-            int chunkNumber = i + 1;
-            assertNull(containerRepository.findChunk(containerId, chunkNumber));
-            assertNull(chunkRepository.findById(chunkIdArray[i]));
-        }
-
+        // endregion
     }
 
 }

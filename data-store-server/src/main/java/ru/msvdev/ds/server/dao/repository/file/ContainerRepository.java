@@ -3,7 +3,6 @@ package ru.msvdev.ds.server.dao.repository.file;
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
-import ru.msvdev.ds.server.dao.entity.file.Chunk;
 import ru.msvdev.ds.server.dao.entity.file.ContainerHeader;
 
 
@@ -42,60 +41,6 @@ public interface ContainerRepository extends Repository<ContainerHeader, Long> {
 
 
     /**
-     * Получить идентификатор контейнера по hash-сумме содержащихся в нём данных
-     *
-     * @param sha256 hash-сумма контейнера данных hex(sha256(content))
-     * @return идентификатор контейнера
-     */
-    @Query("SELECT id FROM containers WHERE sha256 = :sha256")
-    Long findIdBySha256(String sha256);
-
-
-    /**
-     * Проверить существование контейнера с данными по hash-сумме
-     *
-     * @param sha256 hash-сумма контейнера данных hex(sha256(content))
-     * @return True - контейнер существует, False - не существует
-     */
-    @Query("SELECT EXISTS(SELECT id FROM containers WHERE sha256 = :sha256)")
-    boolean existSha256(String sha256);
-
-
-    /**
-     * Вставить заголовок контейнера
-     *
-     * @param sha256        hash-сумма контейнера данных hex(sha256(content))
-     * @param size          размер контейнера данных (байт)
-     * @param chunkCount    количество фрагментов, на которое разбит контейнер
-     * @param chunkSize     размер фрагментов контейнера (байт)
-     * @param lastChunkSize размер последнего фрагмента контейнера (байт)
-     * @return идентификатор вставленного контейнера
-     */
-    @Query("""
-            WITH inserted_container AS (
-                INSERT INTO containers (sha256, size, chunk_count, chunk_size, last_chunk_size)
-                VALUES (:sha256, :size, :chunkCount, :chunkSize, :lastChunkSize)
-                RETURNING id
-            )
-            SELECT id FROM inserted_container
-            """)
-    Long insert(String sha256, long size, int chunkCount, int chunkSize, int lastChunkSize);
-
-
-    /**
-     * Создать связь контейнера с фрагментом данных
-     *
-     * @param containerId идентификатор контейнера
-     * @param chunkId     идентификатор фрагмента данных
-     * @param chunkNumber порядковый номер фрагмента данных (нумерация начинается с единицы, т.е. 1,2,3,4,...)
-     * @return True - вставка произошла успешно, False - вставка не произошла
-     */
-    @Modifying
-    @Query("INSERT INTO container_chunks (container_id, chunk_id, number) VALUES (:containerId, :chunkId, :chunkNumber)")
-    boolean insertChunk(long containerId, long chunkId, long chunkNumber);
-
-
-    /**
      * Создать контейнер бинарных данных на основе сессии выгрузки файла на сервер
      *
      * @param uploadSessionId идентификатор сессии выгрузки содержимого файла
@@ -126,12 +71,12 @@ public interface ContainerRepository extends Repository<ContainerHeader, Long> {
      * @return фрагмент бинарных данных содержащихся в контейнере
      */
     @Query("""
-            SELECT ch.size, ch.content, cnt.number
+            SELECT ch.content
             FROM container_chunks AS cnt
             INNER JOIN chunks AS ch ON ch.id = cnt.chunk_id
             WHERE cnt.container_id = :containerId AND cnt.number = :chunkNumber
             """)
-    Chunk findChunk(long containerId, int chunkNumber);
+    String findChunkContent(long containerId, int chunkNumber);
 
 
     /**
