@@ -128,26 +128,24 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
 
 
     /**
-     * Удалить все сессии выгрузки фрагментов файлов по их состоянию
-     * и дате последнего изменения этого состояния.
+     * Удалить все выгруженные на сервер фрагменты файлов
      * <p>
-     * Примечание: метод предназначен для удаления просроченных сессий
+     * Примечание: метод предназначен для удаления фрагментов файлов
+     * ошибочных сессии
      *
      * @param uploadSessionId идентификатор сессии выгрузки файла
-     * @param state           состояния удаляемых сессий
-     * @param lastModified    дата и время изменения состояния меньше которого сессии удаляются
      * @return True - удаление успешное, False - удаление не произошло
      */
     @Modifying
     @Query("""
             WITH chunks_for_delete AS (
                 DELETE FROM upload_chunks
-                WHERE upload_session_id = :uploadSessionId AND state = :state AND last_modified <= :lastModified
+                WHERE upload_session_id = :uploadSessionId
                 RETURNING chunk_id
             )
             DELETE FROM chunks WHERE id IN (SELECT chunk_id FROM chunks_for_delete)
             """)
-    boolean deleteUploadChunk(long uploadSessionId, UploadSessionState state, OffsetDateTime lastModified);
+    boolean deleteUploadChunks(long uploadSessionId);
 
 
     /**
@@ -169,7 +167,7 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
             )
             DELETE FROM chunks WHERE id IN (SELECT chunk_id FROM chunks_for_delete)
             """)
-    boolean deleteUploadChunk(UploadSessionState state, OffsetDateTime lastModified);
+    boolean deleteUploadChunks(UploadSessionState state, OffsetDateTime lastModified);
 
 
     /**
@@ -180,27 +178,6 @@ public interface UploadSessionRepository extends Repository<UploadSession, Long>
      */
     @Query("SELECT number FROM upload_chunks WHERE upload_session_id = :uploadSessionId ORDER BY number")
     int[] findChunkNumbers(long uploadSessionId);
-
-
-    /**
-     * Найти порядковые номера фрагментов выгружаемого файла соответствующих определённому состоянию
-     *
-     * @param uploadSessionId идентификатор сессии выгрузки файла
-     * @param state           состояния искомых фрагментов
-     * @return массив порядковых номеров фрагментов отсортированных по возрастанию
-     */
-    @Query("SELECT number FROM upload_chunks WHERE upload_session_id = :uploadSessionId AND state = :state ORDER BY number")
-    int[] findChunkNumbers(long uploadSessionId, UploadSessionState state);
-
-
-    /**
-     * Получить количество всех фрагментов выгружаемого файла
-     *
-     * @param uploadSessionId идентификатор сессии выгрузки файла
-     * @return количество фрагментов
-     */
-    @Query("SELECT COUNT(number) FROM upload_chunks WHERE upload_session_id = :uploadSessionId")
-    int countChunkNumbers(long uploadSessionId);
 
 
     /**

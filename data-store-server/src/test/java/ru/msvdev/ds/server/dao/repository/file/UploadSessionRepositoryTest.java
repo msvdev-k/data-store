@@ -1,371 +1,369 @@
 package ru.msvdev.ds.server.dao.repository.file;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.file.ChunkingSchema;
 import ru.msvdev.ds.server.dao.entity.file.UploadSession;
 import ru.msvdev.ds.server.utils.file.UploadSessionState;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
+@Sql({"classpath:db/repository/file/upload-session-repository-test.sql"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class UploadSessionRepositoryTest extends ApplicationTest {
 
     private final UploadSessionRepository uploadSessionRepository;
-    private final ChunkRepository chunkRepository;
 
     @Autowired
-    public UploadSessionRepositoryTest(UploadSessionRepository uploadSessionRepository, ChunkRepository chunkRepository) {
+    public UploadSessionRepositoryTest(UploadSessionRepository uploadSessionRepository) {
         this.uploadSessionRepository = uploadSessionRepository;
-        this.chunkRepository = chunkRepository;
-    }
-
-    private String sha256;
-    private ChunkingSchema fileChunking;
-    private UUID userUUID;
-    private long[] chunkIdArray;
-
-
-    @BeforeEach
-    void setUp() {
-        sha256 = "f5d343132f7ab1938e186ce599d75fca793022331deb73e544bddbe95538c742";
-
-        long size = 1024 * 1024 * 4 + 256 * 1024;
-        int chunkSize = 1024 * 1024;
-        int minChunkSize = 512 * 1024;
-        fileChunking = ChunkingSchema.of(size, chunkSize, minChunkSize);
-
-        userUUID = UUID.randomUUID();
-
-        chunkIdArray = new long[fileChunking.count()];
-        for (int i = 0; i < fileChunking.count() - 1; i++) {
-            chunkIdArray[i] = chunkRepository.insert(fileChunking.chunkSize(), String.valueOf(i + 1));
-        }
-        chunkIdArray[fileChunking.count() - 1] = chunkRepository.insert(fileChunking.lastChunkSize(), String.valueOf(fileChunking.count()));
-    }
-
-    @AfterEach
-    void tearDown() {
     }
 
 
     @Test
-    void insertTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void insert() {
+        // region Given
+        UploadSessionState state = UploadSessionState.UPLOAD;
+        String sha256 = "5e42862836d92d48960e5e7329eac476ee002b39f2bd5cd884e11f64e0d96124";
+        long size = 214;
+        int chunkCount = 7;
+        int chunkSize = 32;
+        int lastChunkSize = 22;
 
-        assertThrowsExactly(DuplicateKeyException.class, () ->
-                uploadSessionRepository.insert(UploadSessionState.UPLOAD, sha256, 0, 0, 0, 0)
-        );
+        long expectedId = 37;
+        // endregion
+
+
+        // region When
+        Long insertedId = uploadSessionRepository.insert(state, sha256, size, chunkCount, chunkSize, lastChunkSize);
+        // endregion
+
+
+        // region Then
+        assertNotNull(insertedId);
+        assertEquals(expectedId, insertedId);
+
+        // endregion
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(UploadSessionState.class)
+    void updateState(UploadSessionState state) {
+        // region Given
+        long id = 5;
+        // endregion
+
+        // region When
+        boolean updateFlag = uploadSessionRepository.updateState(id, state);
+        // endregion
+
+        // region Then
+        assertTrue(updateFlag);
+        // endregion
     }
 
 
     @Test
-    void updateStateTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void delete() {
+        // region Given
+        long id = 5;
+        // endregion
 
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.UPLOAD));
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.PROCESSING));
-        assertTrue(uploadSessionRepository.updateState(uploadSessionId, UploadSessionState.ERROR));
+
+        // region When
+        boolean deleteFlag = uploadSessionRepository.delete(id);
+        // endregion
+
+
+        // region Then
+        assertTrue(deleteFlag);
+        // endregion
     }
 
 
     @Test
-    void deleteTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void findById() {
+        // region Given
+        long id = 5;
+        UploadSessionState state = UploadSessionState.PROCESSING;
+        String sha256 = "1350b3ccbac695c62f55787f54fb60e838c8f4767afe4d5a577ecb96a1ec19c6";
+        long size = 214;
+        int chunkCount = 7;
+        int chunkSize = 32;
+        int lastChunkSize = 22;
+        // endregion
 
-        assertTrue(uploadSessionRepository.delete(uploadSessionId));
-        // Повторное удаление не происходит
-        assertFalse(uploadSessionRepository.delete(uploadSessionId));
+
+        // region When
+        UploadSession foundUploadSession = uploadSessionRepository.findById(id);
+        // endregion
+
+
+        // region Then
+        assertNotNull(foundUploadSession);
+        assertEquals(id, foundUploadSession.id());
+        assertEquals(state, foundUploadSession.state());
+        assertEquals(sha256, foundUploadSession.sha256());
+        assertEquals(size, foundUploadSession.size());
+        assertEquals(chunkCount, foundUploadSession.chunkCount());
+        assertEquals(chunkSize, foundUploadSession.chunkSize());
+        assertEquals(lastChunkSize, foundUploadSession.lastChunkSize());
+        // endregion
     }
 
 
     @Test
-    void findByIdTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void findBySha256() {
+        // region Given
+        long id = 5;
+        UploadSessionState state = UploadSessionState.PROCESSING;
+        String sha256 = "1350b3ccbac695c62f55787f54fb60e838c8f4767afe4d5a577ecb96a1ec19c6";
+        long size = 214;
+        int chunkCount = 7;
+        int chunkSize = 32;
+        int lastChunkSize = 22;
+        // endregion
 
-        UploadSession uploadSession = uploadSessionRepository.findById(uploadSessionId);
 
-        assertNotNull(uploadSession);
-        assertEquals(uploadSessionId, uploadSession.id());
-        assertEquals(UploadSessionState.UPLOAD, uploadSession.state());
-        assertEquals(sha256, uploadSession.sha256());
-        assertEquals(fileChunking.size(), uploadSession.size());
-        assertEquals(fileChunking.count(), uploadSession.chunkCount());
-        assertEquals(fileChunking.chunkSize(), uploadSession.chunkSize());
-        assertEquals(fileChunking.lastChunkSize(), uploadSession.lastChunkSize());
+        // region When
+        UploadSession foundUploadSession = uploadSessionRepository.findBySha256(sha256);
+        // endregion
+
+
+        // region Then
+        assertNotNull(foundUploadSession);
+        assertEquals(id, foundUploadSession.id());
+        assertEquals(state, foundUploadSession.state());
+        assertEquals(sha256, foundUploadSession.sha256());
+        assertEquals(size, foundUploadSession.size());
+        assertEquals(chunkCount, foundUploadSession.chunkCount());
+        assertEquals(chunkSize, foundUploadSession.chunkSize());
+        assertEquals(lastChunkSize, foundUploadSession.lastChunkSize());
+        // endregion
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({
+            "UPLOAD,     2",
+            "PROCESSING, 1",
+            "ERROR,      0"
+    })
+    void findAllIdByState(UploadSessionState state, int count) {
+        // region Given
+        // endregion
+
+
+        // region When
+        long[] allIdByState = uploadSessionRepository.findAllIdByState(state);
+        // endregion
+
+
+        // region Then
+        assertNotNull(allIdByState);
+        assertEquals(count, allIdByState.length);
+        // endregion
     }
 
 
     @Test
-    void findBySha256Test() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void insertUploadChunk() {
+        // region Given
+        UUID userUUID = UUID.randomUUID();
+        long uploadSessionId = 7;
+        long chunkId = 64;
+        int chunkNumber = 4;
+        UploadSessionState state = UploadSessionState.UPLOAD;
+        OffsetDateTime lastModified = OffsetDateTime.now();
+        // endregion
 
-        UploadSession uploadSession = uploadSessionRepository.findBySha256(sha256);
+        // region When
+        boolean insertFlag = uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId, chunkId, chunkNumber, state, lastModified);
+        // endregion
 
-        assertNotNull(uploadSession);
-        assertEquals(uploadSessionId, uploadSession.id());
-        assertEquals(UploadSessionState.UPLOAD, uploadSession.state());
-        assertEquals(sha256, uploadSession.sha256());
-        assertEquals(fileChunking.size(), uploadSession.size());
-        assertEquals(fileChunking.count(), uploadSession.chunkCount());
-        assertEquals(fileChunking.chunkSize(), uploadSession.chunkSize());
-        assertEquals(fileChunking.lastChunkSize(), uploadSession.lastChunkSize());
+        // region Then
+        assertTrue(insertFlag);
+        // endregion
     }
 
 
     @Test
-    void finAllIdBySateTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void updateUploadChunkState() {
+        // region Given
+        UUID userUUID = UUID.fromString("596aeb50-27a7-4361-ab12-e28ac6a4760c");
+        long uploadSessionId = 7;
+        int chunkNumber = 3;
+        UploadSessionState newState = UploadSessionState.UPLOAD;
+        OffsetDateTime lastModified = OffsetDateTime.now();
+        // endregion
 
-        long[] ids1 = uploadSessionRepository.findAllIdByState(UploadSessionState.UPLOAD);
 
-        assertEquals(1, ids1.length);
-        assertEquals(uploadSessionId, ids1[0]);
+        // region When
+        boolean updateFlag = uploadSessionRepository.updateUploadChunkState(
+                userUUID, uploadSessionId, chunkNumber, newState, lastModified);
+        // endregion
 
-        long[] ids2 = uploadSessionRepository.findAllIdByState(UploadSessionState.PROCESSING);
 
-        assertEquals(0, ids2.length);
+        // region Then
+        assertTrue(updateFlag);
+        // endregion
     }
 
 
     @Test
-    void insertUploadChunkTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    void deleteUploadChunks1() {
+        // region Given
+        long uploadSessionId = 5;
+        // endregion
 
-        for (int i = 1; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
 
-        assertThrowsExactly(DuplicateKeyException.class, () ->
-                uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                        chunkIdArray[0], 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-        );
+        // region When
+        boolean deleteFlag = uploadSessionRepository.deleteUploadChunks(uploadSessionId);
+        // endregion
+
+
+        // region Then
+        assertTrue(deleteFlag);
+        // endregion
     }
 
 
     @Test
-    void updateUploadChunkStateTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
-
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
+    void deleteUploadChunks2() {
+        // region Given
+        long uploadSessionId = 5;
+        UploadSessionState state = UploadSessionState.PROCESSING;
+        OffsetDateTime lastModified = OffsetDateTime.now();
+        // endregion
 
 
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.updateUploadChunkState(userUUID, uploadSessionId,
-                            i + 1, UploadSessionState.PROCESSING, OffsetDateTime.now())
-            );
-        }
+        // region When
+        boolean deleteFlag = uploadSessionRepository.deleteUploadChunks(state, lastModified);
+        // endregion
+
+
+        // region Then
+        assertTrue(deleteFlag);
+        // endregion
     }
 
 
-    @Test
-    void deleteUploadChunksTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    @ParameterizedTest
+    @CsvSource({
+            "4, 0",
+            "5, 7",
+            "7, 3"
+    })
+    void findChunkNumbers(long uploadSessionId, int chunkCount) {
+        // region Given
+        // endregion
 
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
 
-        assertTrue(uploadSessionRepository.deleteUploadChunk(uploadSessionId, UploadSessionState.UPLOAD, OffsetDateTime.now()));
+        // region When
+        int[] chunkNumbers = uploadSessionRepository.findChunkNumbers(uploadSessionId);
+        // endregion
 
-        assertEquals(0, uploadSessionRepository.countChunkNumbers(uploadSessionId));
+
+        // region Then
+        assertNotNull(chunkNumbers);
+        assertEquals(chunkCount, chunkNumbers.length);
+        // endregion
     }
 
 
-    @Test
-    void deleteUploadChunksForAllSessionTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    @ParameterizedTest
+    @CsvSource({
+            "4, UPLOAD,     0",
+            "4, PROCESSING, 0",
+            "5, UPLOAD,     0",
+            "5, PROCESSING, 7",
+            "7, UPLOAD,     1",
+            "7, PROCESSING, 2"
+    })
+    void countChunkNumbers(long uploadSessionId, UploadSessionState state, int expectedCount) {
+        // region Given
+        // endregion
 
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
 
-        assertTrue(uploadSessionRepository.deleteUploadChunk(UploadSessionState.UPLOAD, OffsetDateTime.now()));
+        // region When
+        int foundCount = uploadSessionRepository.countChunkNumbers(uploadSessionId, state);
+        // endregion
 
-        assertEquals(0, uploadSessionRepository.countChunkNumbers(uploadSessionId));
+
+        // region Then
+        assertEquals(expectedCount, foundCount);
+        // endregion
     }
 
 
-    @Test
-    void findChunkNumbersTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    @ParameterizedTest
+    @CsvSource({
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 1, 51",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 2, 52",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 3, 53",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 4, 54",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 5, 55",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 6, 56",
+            "fea55e01-e825-4c17-9518-5c8418926029, 5, 7, 57",
+            "596aeb50-27a7-4361-ab12-e28ac6a4760c, 7, 1, 61",
+            "596aeb50-27a7-4361-ab12-e28ac6a4760c, 7, 2, 62",
+            "596aeb50-27a7-4361-ab12-e28ac6a4760c, 7, 3, 63"
+    })
+    void findChunkId(UUID userUUID, long uploadSessionId, int number, long expectedChunkId) {
+        // region Given
+        // endregion
 
-        List<Integer> numbers = new ArrayList<>();
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            numbers.add(chunkIdArray.length - i);
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], chunkIdArray.length - i, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
+
+        // region When
+        Long foundChunkId = uploadSessionRepository.findChunkId(userUUID, uploadSessionId, number);
+        // endregion
 
 
-        int[] findNumbers = uploadSessionRepository.findChunkNumbers(uploadSessionId);
-        System.out.println(Arrays.toString(findNumbers));
-
-        assertEquals(numbers.size(), findNumbers.length);
-        for (int findNumber : findNumbers) {
-            assertTrue(numbers.contains(findNumber));
-        }
-
-        int[] findNumbersForState = uploadSessionRepository.findChunkNumbers(uploadSessionId, UploadSessionState.UPLOAD);
-        System.out.println(Arrays.toString(findNumbersForState));
-
-        assertEquals(numbers.size(), findNumbersForState.length);
-        for (int findNumber : findNumbersForState) {
-            assertTrue(numbers.contains(findNumber));
-        }
+        // region Then
+        assertNotNull(foundChunkId);
+        assertEquals(expectedChunkId, foundChunkId);
+        // endregion
     }
 
 
-    @Test
-    void countChunkNumbersTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
+    @ParameterizedTest
+    @CsvSource({
+            "5, 1, jDtfw0ackTV7voJilcywvcV0BPPt4DMOBIwcTN1QBuE=",
+            "5, 2, YpXriML4NngZOtAVKIRUAmYWdxyw7yj4IBYlkYriQM8=",
+            "5, 3, VkZxervyWWOdAajCxYyTPfs4j5N1frYRj3F9jNrdBH8=",
+            "5, 4, ZW/MO7aAcQwagAmR40XW/TN8ip+LYcLAZfTU4iB+nQQ=",
+            "5, 5, EihQoG4nxlnFZOAHTmqGioPat463KtKpGtcEpj87wfw=",
+            "5, 6, 4ErVGVIMeh15gxPep6YXO6C9Vjqy43EoC51c0jNI/eE=",
+            "5, 7, 2VEmSQXYkME0RV8d338cRQYjlAqpmA==",
+            "7, 1, WtHrRi8IdXN50S+b5u+0MKGQ2Mv2vvvivEtLK4aU9qc=",
+            "7, 2, mCtWVyDY0qV2YjggeSZDXwP9ORfh96/tZWOWj/uDeEA="
+    })
+    void findChunkContent(long uploadSessionId, int chunkNumber, String expectedChunkContent) {
+        // region Given
+        // endregion
 
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], chunkIdArray.length - i, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
 
-        int countChunkNumbers1 = uploadSessionRepository.countChunkNumbers(uploadSessionId);
-        assertEquals(chunkIdArray.length, countChunkNumbers1);
+        // region When
+        String foundChunkContent = uploadSessionRepository.findChunkContent(uploadSessionId, chunkNumber);
+        // endregion
 
-        int countChunkNumbers2 = uploadSessionRepository.countChunkNumbers(uploadSessionId, UploadSessionState.UPLOAD);
-        assertEquals(chunkIdArray.length, countChunkNumbers2);
+
+        // region Then
+        assertNotNull(foundChunkContent);
+        assertEquals(expectedChunkContent, foundChunkContent);
+        // endregion
     }
-
-
-    @Test
-    void findChunkIdTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
-
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
-
-
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            Long chunkId = uploadSessionRepository.findChunkId(userUUID, uploadSessionId, i + 1);
-
-            assertNotNull(chunkId);
-            assertEquals(chunkIdArray[i], chunkId);
-        }
-
-        UUID user = UUID.randomUUID();
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            Long chunkId = uploadSessionRepository.findChunkId(user, uploadSessionId, i + 1);
-
-            assertNull(chunkId);
-        }
-    }
-
-    @Test
-    void findChunkContentTest() {
-        Long uploadSessionId = uploadSessionRepository.insert(
-                UploadSessionState.UPLOAD, sha256, fileChunking.size(),
-                fileChunking.count(), fileChunking.chunkSize(), fileChunking.lastChunkSize()
-        );
-        assertNotNull(uploadSessionId);
-
-        for (int i = 0; i < chunkIdArray.length; i++) {
-            assertTrue(
-                    uploadSessionRepository.insertUploadChunk(userUUID, uploadSessionId,
-                            chunkIdArray[i], i + 1, UploadSessionState.UPLOAD, OffsetDateTime.now())
-            );
-        }
-
-
-        for (int i = 1; i < chunkIdArray.length; i++) {
-            String chunkContent = uploadSessionRepository.findChunkContent(uploadSessionId, i);
-            assertEquals(String.valueOf(i), chunkContent);
-        }
-    }
-
 
 }
