@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,7 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @DataJdbcTest
-@Sql({"classpath:db/repository/value-repository-test.sql"})
+@Sql(
+        value = {"classpath:db/repository/value-repository-test.sql"},
+        config = @SqlConfig(encoding = "UTF8")
+)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TextValueRepositoryTest extends ApplicationTest {
 

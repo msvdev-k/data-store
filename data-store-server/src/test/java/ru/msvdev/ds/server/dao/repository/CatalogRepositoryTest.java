@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.dao.entity.Catalog;
 import ru.msvdev.ds.server.security.Authority;
@@ -20,7 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
-@Sql({"classpath:db/repository/catalog-repository-test.sql"})
+@Sql(
+        value = {"classpath:db/repository/catalog-repository-test.sql"},
+        config = @SqlConfig(encoding = "UTF8")
+)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CatalogRepositoryTest extends ApplicationTest {
 
@@ -50,7 +54,7 @@ class CatalogRepositoryTest extends ApplicationTest {
 
 
         // region Then
-        assertTrue(insertedCatalog.id() > 0);
+        assertTrue(insertedCatalog.id() > 36);
         assertEquals(catalogName, insertedCatalog.name());
         assertEquals(catalogDescription, insertedCatalog.description());
         if (catalogDescription == null) {
