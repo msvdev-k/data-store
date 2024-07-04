@@ -136,7 +136,8 @@ public class UploadSessionService {
                 (int) property.chunkSize().toBytes(),
                 (int) property.minChunkSize().toBytes());
 
-        Long uploadSessionId = uploadSessionRepository.insert(UploadSessionState.UPLOAD, uploadFileRequest.getSha256(),
+        Long uploadSessionId = uploadSessionRepository.insert(
+                UploadSessionState.UPLOAD, uploadFileRequest.getSha256().toLowerCase(),
                 schema.size(), schema.count(), schema.chunkSize(), schema.lastChunkSize());
 
         Long chunkId = chunkRepository.insertContent(EMPTY_CHUNK_CONTENT);
@@ -192,7 +193,7 @@ public class UploadSessionService {
      */
     @Transactional
     public void deleteObsoleteUploadChunkSessions() {
-        uploadSessionRepository.deleteUploadChunk(
+        uploadSessionRepository.deleteUploadChunks(
                 UploadSessionState.UPLOAD,
                 OffsetDateTime.now().minus(property.uploadChunkTimeout())
         );
@@ -243,6 +244,7 @@ public class UploadSessionService {
             byte[] chunkContentBytes = base64Decoder.decode(chunkContentString);
 
             if (chunkContentBytes.length != chunkingSchema.getChunkSize(chunkNumber)) {
+                uploadSessionRepository.deleteUploadChunks(sessionId);
                 uploadSessionRepository.updateState(sessionId, UploadSessionState.ERROR);
                 return;
             }
@@ -251,7 +253,8 @@ public class UploadSessionService {
         }
 
         String contentSha256 = hexFormat.formatHex(messageDigest.digest());
-        if (!uploadSession.sha256().equals(contentSha256)) {
+        if (!uploadSession.sha256().equalsIgnoreCase(contentSha256)) {
+            uploadSessionRepository.deleteUploadChunks(sessionId);
             uploadSessionRepository.updateState(sessionId, UploadSessionState.ERROR);
             return;
         }
