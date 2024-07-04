@@ -8,6 +8,7 @@ VALUES
 (3, 'Books', 'Book catalog'),
 (4, 'Рецепты', NULL);
 
+ALTER SEQUENCE "catalogs_id_seq" RESTART WITH 37;
 
 -- ----------------------------------- --
 -- Добавление полномочия пользователей --
