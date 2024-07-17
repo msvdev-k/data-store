@@ -3,30 +3,21 @@ package ru.msvdev.ds.server.security.access;
 import lombok.Setter;
 import ru.msvdev.ds.server.security.HttpRequest;
 import ru.msvdev.ds.server.security.Permission;
-import ru.msvdev.ds.server.security.UserAccessService;
+import ru.msvdev.ds.server.security.AccessService;
 
 
 @Setter
-public class RootAccessTreeNode implements UserAccessService {
+public class RootAccessTreeNode implements AccessService {
 
-    protected UserAccessService[] accessTreeNodes;
+    protected AccessService[] accessTreeNodes;
 
     @Override
     public Permission getPermission(HttpRequest httpRequest) {
-        for (UserAccessService node : accessTreeNodes) {
+        for (AccessService node : accessTreeNodes) {
             Permission permission = node.getPermission(httpRequest);
 
-            switch (permission) {
-                case BAD_REQUEST -> {
-                    continue;
-                }
-                case OK -> {
-                    return Permission.OK;
-                }
-                case FORBIDDEN -> {
-                    return Permission.FORBIDDEN;
-                }
-            }
+            if (permission != Permission.BAD_REQUEST)
+                return permission;
         }
 
         return Permission.BAD_REQUEST;

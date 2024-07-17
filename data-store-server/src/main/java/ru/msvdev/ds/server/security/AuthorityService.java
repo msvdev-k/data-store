@@ -6,7 +6,7 @@ import java.util.UUID;
 /**
  * Сервис, предоставляющий полномочия пользователя при работе с картотекой
  */
-public interface UserAuthorityService {
+public interface AuthorityService {
 
     /**
      * Загрузить полномочия пользователя при работе с картотекой

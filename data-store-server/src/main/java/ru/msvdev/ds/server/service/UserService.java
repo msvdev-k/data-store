@@ -7,7 +7,7 @@ import ru.msvdev.ds.server.dao.repository.CatalogRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogAuthority;
 import ru.msvdev.ds.server.openapi.model.UserAuthorities;
 import ru.msvdev.ds.server.security.Authority;
-import ru.msvdev.ds.server.security.UserAuthorityService;
+import ru.msvdev.ds.server.security.AuthorityService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserAuthorityService {
+public class UserService implements AuthorityService {
 
     private final CatalogRepository catalogRepository;
 

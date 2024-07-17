@@ -3,7 +3,7 @@ package ru.msvdev.ds.server.security;
 /**
  * Сервис, проверяющий допуск пользователя к запрашиваемому ресурсу
  */
-public interface UserAccessService {
+public interface AccessService {
 
     /**
      * Получить разрешение на доступ к результату запроса

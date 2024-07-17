@@ -20,7 +20,7 @@ public class AuthorityFilter extends OncePerRequestFilter {
 
     private static final String USER_UUID_HEADER = "User-UUID";
 
-    private final UserAccessService userAccessService;
+    private final AccessService accessService;
 
 
     @Override
@@ -33,12 +33,12 @@ public class AuthorityFilter extends OncePerRequestFilter {
             }
 
             UUID userUuid = UUID.fromString(userUuidHeader);
-            String[] pathParts = request.getRequestURI().substring(1).split("/");
+            String[] pathParts = request.getRequestURI().split("/");
             HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
             Set<Authority> authorities = new HashSet<>();
 
             HttpRequest httpRequest = new HttpRequest(userUuid, pathParts, httpMethod, authorities);
-            Permission permission = userAccessService.getPermission(httpRequest);
+            Permission permission = accessService.getPermission(httpRequest);
 
             switch (permission) {
                 case OK -> filterChain.doFilter(request, response);

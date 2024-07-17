@@ -3,19 +3,19 @@ package ru.msvdev.ds.server.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import ru.msvdev.ds.server.security.UserAccessService;
+import ru.msvdev.ds.server.security.AccessService;
 import ru.msvdev.ds.server.security.Authority;
-import ru.msvdev.ds.server.security.access.CatalogBaseAccessService;
-import ru.msvdev.ds.server.security.UserAuthorityService;
+import ru.msvdev.ds.server.security.access.CatalogBasedAccessService;
+import ru.msvdev.ds.server.security.AuthorityService;
 
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public UserAccessService catalogAccessService(UserAuthorityService userAuthorityService) {
-        return CatalogBaseAccessService.builder()
-                .setAuthorityService(userAuthorityService)
+    public AccessService catalogAccessService(AuthorityService authorityService) {
+        return CatalogBasedAccessService.builder()
+                .setAuthorityService(authorityService)
 
                 .addMatcher("catalog", HttpMethod.GET)
                 .addMatcher("catalog", HttpMethod.POST)
@@ -37,6 +37,10 @@ public class SecurityConfig {
                 .addMatcher("catalog/{catalogId}/user", HttpMethod.DELETE, Authority.MASTER, Authority.GRANT_AUTHORITY)
                 .addMatcher("catalog/{catalogId}/file", HttpMethod.POST, Authority.MASTER, Authority.FILE_UPLOAD)
                 .addMatcher("catalog/{catalogId}/file", HttpMethod.PUT, Authority.MASTER, Authority.FILE_UPLOAD)
+                .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.GET, Authority.MASTER)
+                .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.POST, Authority.MASTER)
+                .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.PUT, Authority.MASTER)
+                .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.DELETE, Authority.MASTER)
 
                 .build();
     }

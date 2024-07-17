@@ -4,7 +4,7 @@ import lombok.Setter;
 import ru.msvdev.ds.server.security.Authority;
 import ru.msvdev.ds.server.security.HttpRequest;
 import ru.msvdev.ds.server.security.Permission;
-import ru.msvdev.ds.server.security.UserAuthorityService;
+import ru.msvdev.ds.server.security.AuthorityService;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
 public class CatalogIdAccessTreeNode extends RootAccessTreeNode {
 
     private int level;
-    private UserAuthorityService userAuthorityService;
+    private AuthorityService authorityService;
 
     @Override
     public Permission getPermission(HttpRequest httpRequest) {
@@ -21,7 +21,7 @@ public class CatalogIdAccessTreeNode extends RootAccessTreeNode {
         if (level < pathParts.length) {
             try {
                 long catalogId = Long.parseLong(pathParts[level]);
-                List<Authority> authorities = userAuthorityService.loadAuthorities(httpRequest.userUuid(), catalogId);
+                List<Authority> authorities = authorityService.loadAuthorities(httpRequest.userUuid(), catalogId);
                 httpRequest.authorities().addAll(authorities);
                 return super.getPermission(httpRequest);
 
