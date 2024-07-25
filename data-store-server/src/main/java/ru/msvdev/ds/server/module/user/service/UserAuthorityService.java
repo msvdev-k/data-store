@@ -1,9 +1,9 @@
-package ru.msvdev.ds.server.service;
+package ru.msvdev.ds.server.module.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.msvdev.ds.server.dao.repository.CatalogRepository;
+import ru.msvdev.ds.server.module.user.repository.UserAuthorityRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogAuthority;
 import ru.msvdev.ds.server.openapi.model.UserAuthorities;
 import ru.msvdev.ds.server.security.Authority;
@@ -16,18 +16,18 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements AuthorityService {
+public class UserAuthorityService implements AuthorityService {
 
-    private final CatalogRepository catalogRepository;
+    private final UserAuthorityRepository userAuthorityRepository;
 
 
     @Transactional(readOnly = true)
     public List<UserAuthorities> getAllUsers(Long catalogId) {
-        List<UUID> users = catalogRepository.findAllUsers(catalogId);
+        List<UUID> users = userAuthorityRepository.findAllUsers(catalogId);
         List<UserAuthorities> userAuthoritiesList = new ArrayList<>();
 
         for (UUID userUuid : users) {
-            List<CatalogAuthority> catalogAuthorities = catalogRepository
+            List<CatalogAuthority> catalogAuthorities = userAuthorityRepository
                     .findAllAuthorities(catalogId, userUuid)
                     .stream()
                     .map(authorityType -> CatalogAuthority.valueOf(authorityType.name()))
@@ -53,7 +53,7 @@ public class UserService implements AuthorityService {
                 .distinct()
                 .toList();
 
-        List<Authority> oldAuthorities = catalogRepository.findAllAuthorities(catalogId, userUuid);
+        List<Authority> oldAuthorities = userAuthorityRepository.findAllAuthorities(catalogId, userUuid);
 
         List<Authority> removeAuthorities = oldAuthorities.stream()
                 .filter(oldAuthority -> oldAuthority != Authority.MASTER && !newAuthorities.contains(oldAuthority))
@@ -64,18 +64,18 @@ public class UserService implements AuthorityService {
                 .toList();
 
         for (Authority authority : removeAuthorities) {
-            if (!catalogRepository.removeAuthority(catalogId, userUuid, authority)) {
+            if (!userAuthorityRepository.removeAuthority(catalogId, userUuid, authority)) {
                 throw new RuntimeException("Не удалось обновить полномочия пользователя!");
             }
         }
 
         for (Authority authority : addAuthorities) {
-            if (!catalogRepository.addAuthority(catalogId, userUuid, authority)) {
+            if (!userAuthorityRepository.addAuthority(catalogId, userUuid, authority)) {
                 throw new RuntimeException("Не удалось обновить полномочия пользователя!");
             }
         }
 
-        List<CatalogAuthority> updatedAuthorities = catalogRepository
+        List<CatalogAuthority> updatedAuthorities = userAuthorityRepository
                 .findAllAuthorities(catalogId, userUuid)
                 .stream()
                 .map(authorityType -> CatalogAuthority.valueOf(authorityType.name()))
@@ -87,15 +87,17 @@ public class UserService implements AuthorityService {
 
     @Transactional
     public void deleteUser(Long catalogId, UUID user) {
-        List<Authority> allAuthorities = catalogRepository.findAllAuthorities(catalogId, user);
+        List<Authority> allAuthorities = userAuthorityRepository.findAllAuthorities(catalogId, user);
         if (allAuthorities.contains(Authority.MASTER)) {
             throw new RuntimeException("Пользователя с полномочиями MASTER удалить не возможно");
         }
-        catalogRepository.removeAllAuthorities(catalogId, user);
+        userAuthorityRepository.removeAllAuthorities(catalogId, user);
     }
 
+
     @Override
+    @Transactional(readOnly = true)
     public List<Authority> loadAuthorities(UUID userUuid, long catalogId) {
-        return catalogRepository.findAllAuthorities(catalogId, userUuid);
+        return userAuthorityRepository.findAllAuthorities(catalogId, userUuid);
     }
 }
