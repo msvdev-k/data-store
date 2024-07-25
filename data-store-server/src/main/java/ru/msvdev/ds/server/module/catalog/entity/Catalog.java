@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.entity;
+package ru.msvdev.ds.server.module.catalog.entity;
 
 import ru.msvdev.ds.server.security.Authority;
 

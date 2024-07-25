@@ -624,7 +624,10 @@ components:
         "FIELD_TEMPLATE_WRITING",
         "FIELD_TEMPLATE_DELETING",
         "FILE_UPLOAD",
-        "FILE_DOWNLOAD"
+        "FILE_DOWNLOAD",
+        "FILE_SYSTEM_READ",
+        "FILE_SYSTEM_WRITE",
+        "FILE_SYSTEM_DELETE"
       ]
 
     UserAuthorities:

@@ -1,10 +1,10 @@
-package ru.msvdev.ds.server.controller;
+package ru.msvdev.ds.server.module.catalog.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import ru.msvdev.ds.server.service.CatalogService;
+import ru.msvdev.ds.server.module.catalog.service.CatalogService;
 import ru.msvdev.ds.server.openapi.api.CatalogApi;
 import ru.msvdev.ds.server.openapi.model.CatalogRequest;
 import ru.msvdev.ds.server.openapi.model.CatalogResponse;
@@ -39,7 +39,7 @@ public class CatalogController implements CatalogApi {
 
     @Override
     public ResponseEntity<CatalogResponse> updateCatalogById(UUID userUUID, Long catalogId, CatalogRequest catalogRequest) {
-        CatalogResponse catalogResponse = catalogService.updateCatalog(catalogId, catalogRequest);
+        CatalogResponse catalogResponse = catalogService.updateCatalog(userUUID, catalogId, catalogRequest);
         return new ResponseEntity<>(catalogResponse, HttpStatus.OK);
     }
 }

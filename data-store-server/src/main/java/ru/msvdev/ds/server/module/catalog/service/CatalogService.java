@@ -1,15 +1,14 @@
-package ru.msvdev.ds.server.service;
+package ru.msvdev.ds.server.module.catalog.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.msvdev.ds.server.dao.entity.Card;
-import ru.msvdev.ds.server.dao.entity.Catalog;
-import ru.msvdev.ds.server.dao.repository.CardRepository;
-import ru.msvdev.ds.server.dao.repository.CatalogRepository;
-import ru.msvdev.ds.server.openapi.model.CatalogAuthority;
+import ru.msvdev.ds.server.module.catalog.card.service.CardService;
+import ru.msvdev.ds.server.module.catalog.entity.Catalog;
+import ru.msvdev.ds.server.module.catalog.mapper.CatalogResponseMapper;
+import ru.msvdev.ds.server.module.catalog.repository.CatalogRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogRequest;
 import ru.msvdev.ds.server.openapi.model.CatalogResponse;
 import ru.msvdev.ds.server.security.Authority;
@@ -22,7 +21,9 @@ import java.util.*;
 public class CatalogService {
 
     private final CatalogRepository catalogRepository;
-    private final CardRepository cardRepository;
+    private final CatalogResponseMapper catalogResponseMapper;
+    private final CardService cardService;
+
 
     @Transactional
     public CatalogResponse newCatalog(UUID userUUID, CatalogRequest catalogRequest) {
@@ -37,17 +38,12 @@ public class CatalogService {
             description = null;
         }
 
-        Catalog catalog = catalogRepository.insert(name.trim(), description);
-        boolean result = catalogRepository.addAuthority(catalog.id(), userUUID, Authority.MASTER);
-
-        if (!result) {
+        Catalog catalog = catalogRepository.insert(userUUID, name.trim(), description, Authority.MASTER);
+        if (catalog == null) {
             throw new RuntimeException("Создать картотеку не удалось");
         }
 
-        CatalogResponse catalogResponse = convert(catalog);
-        catalogResponse.getAuthorities().add(CatalogAuthority.MASTER);
-
-        return catalogResponse;
+        return catalogResponseMapper.convert(catalog);
     }
 
 
@@ -56,24 +52,16 @@ public class CatalogService {
         return catalogRepository
                 .findAll(userUUID)
                 .stream()
-                .map(this::convert)
+                .map(catalogResponseMapper::convert)
                 .toList();
     }
 
 
     @Transactional
-    public void deleteCatalog(Long catalogId) {
-        int cardCount = cardRepository.count(catalogId);
+    public void deleteCatalog(long catalogId) {
+        int cardCount = cardService.count(catalogId);
         if (cardCount > 10) {
             throw new RuntimeException("Запрещено удалять картотеку если в ней хранится более 10 карточек!");
-        }
-
-        List<Card> cards = cardRepository.getCards(catalogId);
-        for (Card card : cards) {
-            boolean result = cardRepository.deleteById(catalogId, card.id());
-            if (!result) {
-                throw new RuntimeException("Удалить карточку из картотеки не удалось");
-            }
         }
 
         boolean result = catalogRepository.deleteById(catalogId);
@@ -84,7 +72,7 @@ public class CatalogService {
 
 
     @Transactional
-    public CatalogResponse updateCatalog(Long catalogId, CatalogRequest catalogRequest) {
+    public CatalogResponse updateCatalog(UUID userUuid, long catalogId, CatalogRequest catalogRequest) {
         String name = catalogRequest.getName();
         String description = catalogRequest.getDescription();
 
@@ -107,34 +95,12 @@ public class CatalogService {
             }
         }
 
-        Catalog catalog = catalogRepository.findById(catalogId);
-
+        Catalog catalog = catalogRepository.findById(userUuid, catalogId);
         if (catalog == null) {
             throw new RuntimeException("Картотека не найдена");
         }
 
-        return convert(catalog);
+        return catalogResponseMapper.convert(catalog);
     }
 
-
-    private CatalogResponse convert(Catalog catalog) {
-        CatalogResponse catalogResponse = new CatalogResponse();
-        catalogResponse.setId(catalog.id());
-        catalogResponse.setName(catalog.name());
-        catalogResponse.setDescription(catalog.description());
-
-        if (catalog.authorities() != null) {
-            catalogResponse.setAuthorities(
-                    Arrays.stream(catalog.authorities())
-                            .map(Authority::name)
-                            .map(CatalogAuthority::valueOf)
-                            .toList()
-            );
-
-        } else {
-            catalogResponse.setAuthorities(new ArrayList<>());
-        }
-
-        return catalogResponse;
-    }
 }

@@ -96,7 +96,7 @@ CREATE TABLE "cards" (
 
 ALTER TABLE "cards" ADD CONSTRAINT "cards_catalog_fk"
     FOREIGN KEY ("catalog_id") REFERENCES "catalogs" ("id")
-    ON DELETE RESTRICT
+    ON DELETE CASCADE
     ON UPDATE CASCADE;
 
 
