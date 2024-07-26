@@ -715,7 +715,8 @@ components:
         "BOOLEAN",
         "BYTES",
         "UUID",
-        "JSON"
+        "JSON",
+        "FILE_ID"
       ]
 
     CardTag:
