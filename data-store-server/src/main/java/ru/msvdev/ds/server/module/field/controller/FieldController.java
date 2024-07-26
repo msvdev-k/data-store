@@ -1,10 +1,10 @@
-package ru.msvdev.ds.server.controller;
+package ru.msvdev.ds.server.module.field.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import ru.msvdev.ds.server.service.FieldService;
+import ru.msvdev.ds.server.module.field.service.FieldService;
 import ru.msvdev.ds.server.openapi.api.FieldApi;
 import ru.msvdev.ds.server.openapi.model.FieldRequest;
 import ru.msvdev.ds.server.openapi.model.FieldResponse;

@@ -1,16 +1,16 @@
-package ru.msvdev.ds.server.service;
+package ru.msvdev.ds.server.module.field.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.msvdev.ds.server.dao.entity.Field;
-import ru.msvdev.ds.server.dao.repository.FieldRepository;
+import ru.msvdev.ds.server.module.field.entity.Field;
+import ru.msvdev.ds.server.module.field.mapper.FieldRepositoryMapper;
+import ru.msvdev.ds.server.module.field.repository.FieldRepository;
 import ru.msvdev.ds.server.utils.type.ValueType;
 import ru.msvdev.ds.server.openapi.model.FieldRequest;
 import ru.msvdev.ds.server.openapi.model.FieldResponse;
-import ru.msvdev.ds.server.openapi.model.FieldTypes;
 
 import java.util.List;
 
@@ -22,10 +22,11 @@ public class FieldService {
     private static final int DEFAULT_ORDER = 1;
 
     private final FieldRepository fieldRepository;
+    private final FieldRepositoryMapper fieldRepositoryMapper;
 
 
     @Transactional
-    public FieldResponse newField(Long catalogId, FieldRequest fieldRequest) {
+    public FieldResponse newField(long catalogId, FieldRequest fieldRequest) {
         int order = fieldRequest.getOrder() != null ? fieldRequest.getOrder() : DEFAULT_ORDER;
         String name = fieldRequest.getName();
         ValueType type = ValueType.valueOf(fieldRequest.getType().name());
@@ -50,22 +51,22 @@ public class FieldService {
             throw new RuntimeException("Создать поле не удалось");
         }
 
-        return convert(field);
+        return fieldRepositoryMapper.convert(field);
     }
 
 
     @Transactional(readOnly = true)
-    public List<FieldResponse> getAllFields(Long catalogId) {
+    public List<FieldResponse> getAllFields(long catalogId) {
         return fieldRepository
                 .findAll(catalogId)
                 .stream()
-                .map(this::convert)
+                .map(fieldRepositoryMapper::convert)
                 .toList();
     }
 
 
     @Transactional
-    public void deleteField(Long catalogId, Long fieldId) {
+    public void deleteField(long catalogId, long fieldId) {
         boolean result = fieldRepository.deleteById(catalogId, fieldId);
         if (!result) {
             throw new RuntimeException("Удалить поле не удалось");
@@ -74,7 +75,7 @@ public class FieldService {
 
 
     @Transactional
-    public FieldResponse updateField(Long catalogId, Long fieldId, FieldRequest fieldRequest) {
+    public FieldResponse updateField(long catalogId, long fieldId, FieldRequest fieldRequest) {
         Integer order = fieldRequest.getOrder();
         String name = fieldRequest.getName();
         String description = fieldRequest.getDescription();
@@ -111,29 +112,16 @@ public class FieldService {
             throw new RuntimeException("Поле не найдено");
         }
 
-        return convert(field);
+        return fieldRepositoryMapper.convert(field);
     }
 
 
     @Transactional(readOnly = true)
-    public ValueType getValueType(Long catalogId, Long fieldId) {
+    public ValueType getValueType(long catalogId, long fieldId) {
         Field field = fieldRepository.findById(catalogId, fieldId);
         if (field == null)
             throw new RuntimeException();
         return field.valueType();
-    }
-
-
-    private FieldResponse convert(Field field) {
-        FieldResponse fieldResponse = new FieldResponse();
-        fieldResponse.setId(field.id());
-        fieldResponse.setOrder(field.order());
-        fieldResponse.setName(field.name());
-        fieldResponse.setDescription(field.description());
-        fieldResponse.setType(FieldTypes.valueOf(field.valueType().name()));
-        fieldResponse.setFormat(field.format());
-
-        return fieldResponse;
     }
 
 }

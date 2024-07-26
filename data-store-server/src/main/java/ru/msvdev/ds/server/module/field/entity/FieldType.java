@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.entity;
+package ru.msvdev.ds.server.module.field.entity;
 
 import ru.msvdev.ds.server.utils.type.ValueType;
 

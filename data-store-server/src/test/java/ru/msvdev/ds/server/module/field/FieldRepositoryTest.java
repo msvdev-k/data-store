@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.repository;
+package ru.msvdev.ds.server.module.field;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.Field;
+import ru.msvdev.ds.server.module.field.entity.Field;
+import ru.msvdev.ds.server.module.field.repository.FieldRepository;
 import ru.msvdev.ds.server.utils.type.ValueType;
 
 import java.util.List;
@@ -20,7 +22,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
-@Sql({"classpath:db/repository/field-repository-test.sql"})
+@Sql(
+        value = {"classpath:module/field/field-repository-test.sql"},
+        config = @SqlConfig(encoding = "UTF8")
+)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class FieldRepositoryTest extends ApplicationTest {
 
@@ -45,15 +50,18 @@ class FieldRepositoryTest extends ApplicationTest {
         // region Given
         // endregion
 
+
         // region When
         boolean existFlag = fieldRepository.existsById(catalogId, id);
         // endregion
+
 
         // region Then
         assertTrue(existFlag || id == 0);
         assertFalse(id == 0 && existFlag);
         // endregion
     }
+
 
     @ParameterizedTest
     @CsvSource({
@@ -86,6 +94,7 @@ class FieldRepositoryTest extends ApplicationTest {
         // endregion
     }
 
+
     @Test
     void findById() {
         // region Given
@@ -93,14 +102,17 @@ class FieldRepositoryTest extends ApplicationTest {
         Field field = new Field(fieldId, 1, 2, "integer", "Long", ValueType.INTEGER, null);
         // endregion
 
+
         // region When
         Field foundField = fieldRepository.findById(catalogId, fieldId);
         // endregion
+
 
         // region Then
         assertEquals(field, foundField);
         // endregion
     }
+
 
     @Test
     void findAll() {
@@ -123,19 +135,21 @@ class FieldRepositoryTest extends ApplicationTest {
 
         // endregion
 
+
         // region When
         List<Field> foundFields = fieldRepository.findAll(catalogId);
         // endregion
 
+
         // region Then
-        assertEquals(13, foundFields.size());
+        assertEquals(fields.length, foundFields.size());
 
         for (Field field : fields) {
             assertTrue(foundFields.contains(field));
         }
-
         // endregion
     }
+
 
     @Test
     void insert() {
@@ -147,9 +161,11 @@ class FieldRepositoryTest extends ApplicationTest {
         String description = "DESCRIPTION";
         // endregion
 
+
         // region When
         Field insertedField = fieldRepository.insert(catalogId, order, name, ValueType.STRING, format, description);
         // endregion
+
 
         // region Then
         assertNotNull(insertedField);
@@ -163,6 +179,7 @@ class FieldRepositoryTest extends ApplicationTest {
         // endregion
     }
 
+
     @Test
     void updateOrder() {
         // region Given
@@ -170,9 +187,11 @@ class FieldRepositoryTest extends ApplicationTest {
         int newOrder = 121;
         // endregion
 
+
         // region When
         boolean updateFlag = fieldRepository.updateOrder(catalogId, id, newOrder);
         // endregion
+
 
         // region Then
         assertTrue(updateFlag);
@@ -183,6 +202,7 @@ class FieldRepositoryTest extends ApplicationTest {
         // endregion
     }
 
+
     @Test
     void updateName() {
         // region Given
@@ -190,9 +210,11 @@ class FieldRepositoryTest extends ApplicationTest {
         String newName = "Новое имя поля";
         // endregion
 
+
         // region When
         boolean updateFlag = fieldRepository.updateName(catalogId, id, newName);
         // endregion
+
 
         // region Then
         assertTrue(updateFlag);
@@ -203,6 +225,7 @@ class FieldRepositoryTest extends ApplicationTest {
         // endregion
     }
 
+
     @Test
     void updateDescription() {
         // region Given
@@ -210,9 +233,11 @@ class FieldRepositoryTest extends ApplicationTest {
         String newDescription = "Новое описание поля";
         // endregion
 
+
         // region When
         boolean updateFlag = fieldRepository.updateDescription(catalogId, id, newDescription);
         // endregion
+
 
         // region Then
         assertTrue(updateFlag);
@@ -223,15 +248,18 @@ class FieldRepositoryTest extends ApplicationTest {
         // endregion
     }
 
+
     @Test
     void deleteById() {
         // region Given
         int id = 12;
         // endregion
 
+
         // region When
         boolean deleteFlag = fieldRepository.deleteById(catalogId, id);
         // endregion
+
 
         // region Then
         assertTrue(deleteFlag);
@@ -248,9 +276,11 @@ class FieldRepositoryTest extends ApplicationTest {
         int order = 69;
         // endregion
 
+
         // region When
         Field insertedField = fieldRepository.insert(catalogId, order, fieldType.name(), fieldType, null, null);
         // endregion
+
 
         // region Then
         assertNotNull(insertedField);
