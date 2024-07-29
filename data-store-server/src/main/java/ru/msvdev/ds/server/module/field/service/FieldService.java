@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.msvdev.ds.server.module.field.entity.Field;
 import ru.msvdev.ds.server.module.field.mapper.FieldRepositoryMapper;
 import ru.msvdev.ds.server.module.field.repository.FieldRepository;
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.ValueType;
 import ru.msvdev.ds.server.openapi.model.FieldRequest;
 import ru.msvdev.ds.server.openapi.model.FieldResponse;
 
@@ -27,23 +27,24 @@ public class FieldService {
 
     @Transactional
     public FieldResponse newField(long catalogId, FieldRequest fieldRequest) {
-        int order = fieldRequest.getOrder() != null ? fieldRequest.getOrder() : DEFAULT_ORDER;
-        String name = fieldRequest.getName();
-        ValueType type = ValueType.valueOf(fieldRequest.getType().name());
-        String description = fieldRequest.getDescription();
-        String format = fieldRequest.getFormat();
 
+        String name = fieldRequest.getName();
         if (name == null || name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Название поля не должно быть пустым!");
         }
 
+        String description = fieldRequest.getDescription();
         if (description != null && description.isBlank()) {
             description = null;
         }
 
+        String format = fieldRequest.getFormat();
         if (format != null && format.isBlank()) {
             format = null;
         }
+
+        int order = fieldRequest.getOrder() != null ? fieldRequest.getOrder() : DEFAULT_ORDER;
+        ValueType type = ValueType.valueOf(fieldRequest.getType().name());
 
         Field field = fieldRepository.insert(catalogId, order, name, type, format, description);
 

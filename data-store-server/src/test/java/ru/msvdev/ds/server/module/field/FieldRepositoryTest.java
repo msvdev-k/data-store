@@ -14,7 +14,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.module.field.entity.Field;
 import ru.msvdev.ds.server.module.field.repository.FieldRepository;
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.ValueType;
 
 import java.util.List;
 

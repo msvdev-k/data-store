@@ -4,7 +4,7 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
 import ru.msvdev.ds.server.module.field.entity.Field;
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.ValueType;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public interface FieldRepository extends Repository<Field, Long> {
     @Query("""
             SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
             FROM fields AS t
-            INNER JOIN field_types AS tp ON tp.id = t.type_id
+            INNER JOIN value_types AS tp ON tp.id = t.type_id
             WHERE t.id = :id AND t.catalog_id = :catalogId
             """)
     Field findById(long catalogId, long id);
@@ -31,7 +31,7 @@ public interface FieldRepository extends Repository<Field, Long> {
     @Query("""
             SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
             FROM fields AS t
-            INNER JOIN field_types AS tp ON tp.id = t.type_id
+            INNER JOIN value_types AS tp ON tp.id = t.type_id
             WHERE t.catalog_id = :catalogId
             """)
     List<Field> findAll(long catalogId);
@@ -45,7 +45,7 @@ public interface FieldRepository extends Repository<Field, Long> {
             )
             SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
             FROM inserted_field_template AS t
-            INNER JOIN field_types AS tp ON tp.id = t.type_id
+            INNER JOIN value_types AS tp ON tp.id = t.type_id
             """)
     Field insert(long catalogId, int order, String name, ValueType type, String format, String description);
 

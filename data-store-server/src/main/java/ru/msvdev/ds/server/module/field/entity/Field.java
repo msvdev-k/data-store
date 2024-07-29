@@ -1,6 +1,6 @@
 package ru.msvdev.ds.server.module.field.entity;
 
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.ValueType;
 
 public record Field(
         long id,
