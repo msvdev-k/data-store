@@ -100,7 +100,7 @@ CREATE VIEW "empty_container" AS (SELECT * FROM "containers" WHERE "sha256" = 'e
 -- ----------------------------------------------- --
 -- Тип данных ассоциированных с дескриптором файла --
 -- ----------------------------------------------- --
-INSERT INTO "field_types" ("id", "type", "description", "pg_type", "java_type") VALUES
+INSERT INTO "value_types" ("id", "type", "description", "pg_type", "java_type") VALUES
 (14, 'FILE_ID', 'Идентификатор файла', 'BIGINT', 'Long');
 
 

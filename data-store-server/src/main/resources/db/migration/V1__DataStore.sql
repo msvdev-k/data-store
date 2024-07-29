@@ -32,10 +32,10 @@ ALTER TABLE "user_authorities" ADD CONSTRAINT "user_authorities_catalog_fk"
 
 
 
--- ------------------------------------------------------ --
--- Таблица типов данных ассоциированных с полями карточек --
--- ------------------------------------------------------ --
-CREATE TABLE "field_types" (
+-- ------------------------------------------------------- --
+-- Таблица типов данных доступных для хранения в картотеке --
+-- ------------------------------------------------------- --
+CREATE TABLE "value_types" (
     "id"          INTEGER      PRIMARY KEY, -- Идентификатор типа данных
     "type"        VARCHAR(32)  NOT NULL,    -- Обозначение типа данных
     "description" VARCHAR(256) NULL,        -- Описание
@@ -43,7 +43,7 @@ CREATE TABLE "field_types" (
     "java_type"   VARCHAR(32)  NULL         -- Соответствующий тип данных Java
 );
 
-INSERT INTO "field_types" ("id", "type", "description", "pg_type", "java_type") VALUES
+INSERT INTO "value_types" ("id", "type", "description", "pg_type", "java_type") VALUES
 (1,  'NULL',        'Никаких данных с полем не ассоциированно',                   NULL,                       NULL             ),
 (2,  'INTEGER',     'Целое число размером 8 байт',                               'BIGINT',                   'Long'            ),
 (3,  'DOUBLE',      'Вещественное число размером 8 байт',                        'DOUBLE PRECISION',         'Double'          ),
@@ -79,8 +79,8 @@ ALTER TABLE "fields" ADD CONSTRAINT "fields_catalog_fk"
     ON DELETE CASCADE
     ON UPDATE CASCADE;
 
-ALTER TABLE "fields" ADD CONSTRAINT "fields_type_fk"
-    FOREIGN KEY ("type_id") REFERENCES "field_types" ("id")
+ALTER TABLE "fields" ADD CONSTRAINT "values_type_fk"
+    FOREIGN KEY ("type_id") REFERENCES "value_types" ("id")
     ON DELETE RESTRICT
     ON UPDATE CASCADE;
 
