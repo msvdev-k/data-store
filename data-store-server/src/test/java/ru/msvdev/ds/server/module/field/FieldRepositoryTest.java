@@ -14,7 +14,7 @@ import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.module.field.entity.Field;
 import ru.msvdev.ds.server.module.field.repository.FieldRepository;
-import ru.msvdev.ds.server.module.value.base.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 
 import java.util.List;
 
@@ -99,7 +99,7 @@ class FieldRepositoryTest extends ApplicationTest {
     void findById() {
         // region Given
         long fieldId = 12;
-        Field field = new Field(fieldId, 1, 2, "integer", "Long", ValueType.INTEGER, null);
+        Field field = new Field(fieldId, 1, 2, "integer", "Long", DataType.INTEGER, null);
         // endregion
 
 
@@ -118,19 +118,19 @@ class FieldRepositoryTest extends ApplicationTest {
     void findAll() {
         // region Given
         Field[] fields = {
-                new Field(11, 1, 1, "null", null, ValueType.NULL, null),
-                new Field(12, 1, 2, "integer", "Long", ValueType.INTEGER, null),
-                new Field(13, 1, 3, "double", "Double", ValueType.DOUBLE, null),
-                new Field(14, 1, 4, "big_decimal", "BigDecimal", ValueType.BIG_DECIMAL, null),
-                new Field(15, 1, 5, "string", "String", ValueType.STRING, null),
-                new Field(16, 1, 6, "text", "String", ValueType.TEXT, null),
-                new Field(17, 1, 7, "date", "LocalDate", ValueType.DATE, null),
-                new Field(18, 1, 8, "datetime", "OffsetDateTime", ValueType.DATETIME, null),
-                new Field(19, 1, 9, "boolean", "Boolean", ValueType.BOOLEAN, null),
-                new Field(20, 1, 10, "bytes", "String", ValueType.BYTES, null),
-                new Field(21, 1, 11, "uuid", "UUID", ValueType.UUID, null),
-                new Field(22, 1, 12, "json", "String", ValueType.JSON, null),
-                new Field(23, 1, 13, "file_id", null, ValueType.FILE_ID, null)
+                new Field(11, 1, 1, "null", null, DataType.NULL, null),
+                new Field(12, 1, 2, "integer", "Long", DataType.INTEGER, null),
+                new Field(13, 1, 3, "double", "Double", DataType.DOUBLE, null),
+                new Field(14, 1, 4, "big_decimal", "BigDecimal", DataType.BIG_DECIMAL, null),
+                new Field(15, 1, 5, "string", "String", DataType.STRING, null),
+                new Field(16, 1, 6, "text", "String", DataType.TEXT, null),
+                new Field(17, 1, 7, "date", "LocalDate", DataType.DATE, null),
+                new Field(18, 1, 8, "datetime", "OffsetDateTime", DataType.DATETIME, null),
+                new Field(19, 1, 9, "boolean", "Boolean", DataType.BOOLEAN, null),
+                new Field(20, 1, 10, "bytes", "String", DataType.BYTES, null),
+                new Field(21, 1, 11, "uuid", "UUID", DataType.UUID, null),
+                new Field(22, 1, 12, "json", "String", DataType.JSON, null),
+                new Field(23, 1, 13, "file_id", null, DataType.FILE_ID, null)
         };
 
         // endregion
@@ -163,7 +163,7 @@ class FieldRepositoryTest extends ApplicationTest {
 
 
         // region When
-        Field insertedField = fieldRepository.insert(catalogId, order, name, ValueType.STRING, format, description);
+        Field insertedField = fieldRepository.insert(catalogId, order, name, DataType.STRING, format, description);
         // endregion
 
 
@@ -174,7 +174,7 @@ class FieldRepositoryTest extends ApplicationTest {
         assertEquals(order, insertedField.order());
         assertEquals(name, insertedField.name());
         assertEquals(description, insertedField.description());
-        assertEquals(ValueType.STRING, insertedField.valueType());
+        assertEquals(DataType.STRING, insertedField.dataType());
         assertEquals(format, insertedField.format());
         // endregion
     }
@@ -269,8 +269,8 @@ class FieldRepositoryTest extends ApplicationTest {
 
 
     @ParameterizedTest
-    @EnumSource(ValueType.class)
-    void insertAllTypesTest(ValueType fieldType) {
+    @EnumSource(DataType.class)
+    void insertAllTypesTest(DataType fieldType) {
         // region Given
         long id = 37;
         int order = 69;
@@ -289,7 +289,7 @@ class FieldRepositoryTest extends ApplicationTest {
         assertEquals(order, insertedField.order());
         assertEquals(fieldType.name(), insertedField.name());
         assertNull(insertedField.description());
-        assertEquals(fieldType, insertedField.valueType());
+        assertEquals(fieldType, insertedField.dataType());
         assertNull(insertedField.format());
         // endregion
     }

@@ -9,7 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.test.context.jdbc.Sql;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.dao.entity.Tag;
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 
 import java.util.List;
 
@@ -66,19 +66,19 @@ class TagRepositoryTest extends ApplicationTest {
         long cardId = 41;
 
         Tag[] tags = new Tag[]{
-                new Tag(41, 21, ValueType.NULL, 51),
-                new Tag(41, 22, ValueType.INTEGER, 52),
-                new Tag(41, 23, ValueType.DOUBLE, 53),
-                new Tag(41, 24, ValueType.BIG_DECIMAL, 54),
-                new Tag(41, 25, ValueType.STRING, 55),
-                new Tag(41, 26, ValueType.TEXT, 56),
-                new Tag(41, 27, ValueType.DATE, 57),
-                new Tag(41, 28, ValueType.DATETIME, 58),
-                new Tag(41, 29, ValueType.BOOLEAN, 59),
-                new Tag(41, 30, ValueType.BYTES, 60),
-                new Tag(41, 31, ValueType.UUID, 61),
-                new Tag(41, 32, ValueType.JSON, 62),
-                new Tag(41, 33, ValueType.FILE_ID, 63)
+                new Tag(41, 21, DataType.NULL, 51),
+                new Tag(41, 22, DataType.INTEGER, 52),
+                new Tag(41, 23, DataType.DOUBLE, 53),
+                new Tag(41, 24, DataType.BIG_DECIMAL, 54),
+                new Tag(41, 25, DataType.STRING, 55),
+                new Tag(41, 26, DataType.TEXT, 56),
+                new Tag(41, 27, DataType.DATE, 57),
+                new Tag(41, 28, DataType.DATETIME, 58),
+                new Tag(41, 29, DataType.BOOLEAN, 59),
+                new Tag(41, 30, DataType.BYTES, 60),
+                new Tag(41, 31, DataType.UUID, 61),
+                new Tag(41, 32, DataType.JSON, 62),
+                new Tag(41, 33, DataType.FILE_ID, 63)
         };
         // endregion
 
@@ -152,19 +152,19 @@ class TagRepositoryTest extends ApplicationTest {
         long cardId = 41;
 
         Tag[] tags = new Tag[]{
-                new Tag(41, 21, ValueType.NULL, 51),
-                new Tag(41, 22, ValueType.INTEGER, 52),
-                new Tag(41, 23, ValueType.DOUBLE, 53),
-                new Tag(41, 24, ValueType.BIG_DECIMAL, 54),
-                new Tag(41, 25, ValueType.STRING, 55),
-                new Tag(41, 26, ValueType.TEXT, 56),
-                new Tag(41, 27, ValueType.DATE, 57),
-                new Tag(41, 28, ValueType.DATETIME, 58),
-                new Tag(41, 29, ValueType.BOOLEAN, 59),
-                new Tag(41, 30, ValueType.BYTES, 60),
-                new Tag(41, 31, ValueType.UUID, 61),
-                new Tag(41, 32, ValueType.JSON, 62),
-                new Tag(41, 33, ValueType.FILE_ID, 63)
+                new Tag(41, 21, DataType.NULL, 51),
+                new Tag(41, 22, DataType.INTEGER, 52),
+                new Tag(41, 23, DataType.DOUBLE, 53),
+                new Tag(41, 24, DataType.BIG_DECIMAL, 54),
+                new Tag(41, 25, DataType.STRING, 55),
+                new Tag(41, 26, DataType.TEXT, 56),
+                new Tag(41, 27, DataType.DATE, 57),
+                new Tag(41, 28, DataType.DATETIME, 58),
+                new Tag(41, 29, DataType.BOOLEAN, 59),
+                new Tag(41, 30, DataType.BYTES, 60),
+                new Tag(41, 31, DataType.UUID, 61),
+                new Tag(41, 32, DataType.JSON, 62),
+                new Tag(41, 33, DataType.FILE_ID, 63)
         };
         // endregion
 

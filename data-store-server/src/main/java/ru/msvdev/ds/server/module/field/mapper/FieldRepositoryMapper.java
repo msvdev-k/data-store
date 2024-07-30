@@ -15,7 +15,7 @@ public class FieldRepositoryMapper {
         fieldResponse.setOrder(field.order());
         fieldResponse.setName(field.name());
         fieldResponse.setDescription(field.description());
-        fieldResponse.setType(FieldTypes.valueOf(field.valueType().name()));
+        fieldResponse.setType(FieldTypes.valueOf(field.dataType().name()));
         fieldResponse.setFormat(field.format());
 
         return fieldResponse;

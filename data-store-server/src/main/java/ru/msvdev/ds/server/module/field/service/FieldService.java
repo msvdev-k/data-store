@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.msvdev.ds.server.module.field.entity.Field;
 import ru.msvdev.ds.server.module.field.mapper.FieldRepositoryMapper;
 import ru.msvdev.ds.server.module.field.repository.FieldRepository;
-import ru.msvdev.ds.server.module.value.base.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 import ru.msvdev.ds.server.openapi.model.FieldRequest;
 import ru.msvdev.ds.server.openapi.model.FieldResponse;
 
@@ -44,7 +44,7 @@ public class FieldService {
         }
 
         int order = fieldRequest.getOrder() != null ? fieldRequest.getOrder() : DEFAULT_ORDER;
-        ValueType type = ValueType.valueOf(fieldRequest.getType().name());
+        DataType type = DataType.valueOf(fieldRequest.getType().name());
 
         Field field = fieldRepository.insert(catalogId, order, name, type, format, description);
 
@@ -118,11 +118,11 @@ public class FieldService {
 
 
     @Transactional(readOnly = true)
-    public ValueType getValueType(long catalogId, long fieldId) {
+    public DataType getValueType(long catalogId, long fieldId) {
         Field field = fieldRepository.findById(catalogId, fieldId);
         if (field == null)
             throw new RuntimeException();
-        return field.valueType();
+        return field.dataType();
     }
 
 }

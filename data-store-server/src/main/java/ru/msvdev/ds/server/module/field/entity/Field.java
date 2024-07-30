@@ -1,6 +1,6 @@
 package ru.msvdev.ds.server.module.field.entity;
 
-import ru.msvdev.ds.server.module.value.base.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 
 public record Field(
         long id,
@@ -8,7 +8,7 @@ public record Field(
         int order,
         String name,
         String description,
-        ValueType valueType,
+        DataType dataType,
         String format
 ) {
 }

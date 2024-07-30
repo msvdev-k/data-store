@@ -4,7 +4,7 @@ import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
 import ru.msvdev.ds.server.module.field.entity.Field;
-import ru.msvdev.ds.server.module.value.base.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 
 import java.util.List;
 
@@ -47,7 +47,7 @@ public interface FieldRepository extends Repository<Field, Long> {
             FROM inserted_field_template AS t
             INNER JOIN value_types AS tp ON tp.id = t.type_id
             """)
-    Field insert(long catalogId, int order, String name, ValueType type, String format, String description);
+    Field insert(long catalogId, int order, String name, DataType type, String format, String description);
 
 
     @Modifying

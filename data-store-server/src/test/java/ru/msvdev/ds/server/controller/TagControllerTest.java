@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.msvdev.ds.server.base.ApplicationTest;
 import ru.msvdev.ds.server.dao.entity.Field;
 import ru.msvdev.ds.server.openapi.model.*;
-import ru.msvdev.ds.server.utils.type.ValueType;
+import ru.msvdev.ds.server.module.value.base.DataType;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -165,7 +165,7 @@ public class TagControllerTest extends ApplicationTest {
             String expectedValue = equalValues.get(0).getValue();
             String actualValue = actualCardTag.getValue();
 
-            switch (fields.get(fieldId).valueType()) {
+            switch (fields.get(fieldId).dataType()) {
                 case NULL -> assertTrue(actualValue.isBlank());
                 case INTEGER,
                         STRING,
@@ -215,7 +215,7 @@ public class TagControllerTest extends ApplicationTest {
                     CardTag cardTag = new CardTag();
                     cardTag.setFieldId(field.id());
 
-                    switch (field.valueType()) {
+                    switch (field.dataType()) {
                         case NULL -> cardTag.setValue(null);
                         case INTEGER -> cardTag.setValue("45698575");
                         case DOUBLE -> cardTag.setValue("125.367e54");
@@ -310,7 +310,7 @@ public class TagControllerTest extends ApplicationTest {
                         fieldResponse.getOrder(),
                         fieldResponse.getName(),
                         fieldResponse.getDescription(),
-                        ValueType.valueOf(fieldResponse.getType().name()),
+                        DataType.valueOf(fieldResponse.getType().name()),
                         fieldResponse.getFormat()
                 )).forEach(field -> fieldMap.put(field.id(), field));
 
