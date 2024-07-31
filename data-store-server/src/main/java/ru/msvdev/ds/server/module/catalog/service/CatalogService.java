@@ -5,13 +5,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import ru.msvdev.ds.server.module.catalog.card.service.CardService;
 import ru.msvdev.ds.server.module.catalog.entity.Catalog;
 import ru.msvdev.ds.server.module.catalog.mapper.CatalogResponseMapper;
 import ru.msvdev.ds.server.module.catalog.repository.CatalogRepository;
 import ru.msvdev.ds.server.openapi.model.CatalogRequest;
 import ru.msvdev.ds.server.openapi.model.CatalogResponse;
 import ru.msvdev.ds.server.security.Authority;
+import ru.msvdev.ds.server.module.card.service.CardService;
 
 import java.util.*;
 

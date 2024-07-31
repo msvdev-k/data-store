@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.entity;
+package ru.msvdev.ds.server.module.card.entity;
 
 public record Card(
         long id,

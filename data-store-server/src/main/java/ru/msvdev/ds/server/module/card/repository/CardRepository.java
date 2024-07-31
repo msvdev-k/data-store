@@ -1,9 +1,9 @@
-package ru.msvdev.ds.server.dao.repository;
+package ru.msvdev.ds.server.module.card.repository;
 
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
-import ru.msvdev.ds.server.dao.entity.Card;
+import ru.msvdev.ds.server.module.card.entity.Card;
 
 import java.util.List;
 

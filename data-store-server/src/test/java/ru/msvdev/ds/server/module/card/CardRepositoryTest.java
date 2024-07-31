@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.repository;
+package ru.msvdev.ds.server.module.card;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.jdbc.DataJdbcTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlConfig;
 import ru.msvdev.ds.server.base.ApplicationTest;
-import ru.msvdev.ds.server.dao.entity.Card;
+import ru.msvdev.ds.server.module.card.entity.Card;
+import ru.msvdev.ds.server.module.card.repository.CardRepository;
 
 import java.util.List;
 
@@ -16,7 +18,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @DataJdbcTest
-@Sql({"classpath:db/repository/card-repository-test.sql"})
+@Sql(
+        value = {"classpath:module/card/card-repository-test.sql"},
+        config = @SqlConfig(encoding = "UTF8")
+)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CardRepositoryTest extends ApplicationTest {
 
@@ -38,9 +43,11 @@ class CardRepositoryTest extends ApplicationTest {
         };
         // endregion
 
+
         // region When
         List<Card> foundCards = cardRepository.getCards(catalogId);
         // endregion
+
 
         // region Then
         assertEquals(cards.length, foundCards.size());
@@ -61,9 +68,11 @@ class CardRepositoryTest extends ApplicationTest {
         // region Given
         // endregion
 
+
         // region When
         int actualCount = cardRepository.count(catalogId);
         // endregion
+
 
         // region Then
         assertEquals(expectedCount, actualCount);
@@ -85,9 +94,11 @@ class CardRepositoryTest extends ApplicationTest {
         // region Given
         // endregion
 
+
         // region When
         boolean existFlag = cardRepository.existsById(catalogId, cardId);
         // endregion
+
 
         // region Then
         assertTrue(existFlag);
@@ -102,9 +113,11 @@ class CardRepositoryTest extends ApplicationTest {
         long cardId = 37;
         // endregion
 
+
         // region When
         Card insertedCard = cardRepository.insert(catalogId);
         // endregion
+
 
         // region Then
         assertNotNull(insertedCard);
@@ -124,9 +137,11 @@ class CardRepositoryTest extends ApplicationTest {
         };
         // endregion
 
+
         // region When
         boolean deleteFlag = cardRepository.deleteById(catalogId, cards[0].id());
         // endregion
+
 
         // region Then
         assertTrue(deleteFlag);
