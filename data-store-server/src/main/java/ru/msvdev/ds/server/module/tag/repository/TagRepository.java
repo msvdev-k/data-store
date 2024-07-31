@@ -1,9 +1,9 @@
-package ru.msvdev.ds.server.dao.repository;
+package ru.msvdev.ds.server.module.tag.repository;
 
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
-import ru.msvdev.ds.server.dao.entity.Tag;
+import ru.msvdev.ds.server.module.tag.entity.Tag;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface TagRepository extends Repository<Tag, Tag> {
 
 
     @Query("""
-            SELECT t.card_id, t.field_id, ft.type AS value_type, t.value_id
+            SELECT t.card_id, t.field_id, ft.type AS data_type, t.value_id
             FROM       tags        AS t
             INNER JOIN cards       AS c  ON c.id  = t.card_id
             INNER JOIN fields      AS f  ON f.id  = t.field_id

@@ -1,13 +1,12 @@
-package ru.msvdev.ds.server.service;
+package ru.msvdev.ds.server.module.tag.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.msvdev.ds.server.dao.entity.Tag;
-import ru.msvdev.ds.server.dao.repository.CardRepository;
-import ru.msvdev.ds.server.dao.repository.FieldRepository;
-import ru.msvdev.ds.server.dao.repository.TagRepository;
-import ru.msvdev.ds.server.service.value.ValueService;
+import ru.msvdev.ds.server.module.tag.mapper.TagResponseMapper;
+import ru.msvdev.ds.server.module.tag.repository.TagRepository;
+import ru.msvdev.ds.server.module.field.service.FieldService;
+import ru.msvdev.ds.server.module.value.service.DataService;
 import ru.msvdev.ds.server.openapi.model.CardTag;
 import ru.msvdev.ds.server.module.value.base.DataType;
 
@@ -19,38 +18,30 @@ import java.util.List;
 public class TagService {
 
     private final TagRepository tagRepository;
-    private final CardRepository cardRepository;
-    private final FieldRepository fieldRepository;
 
     private final FieldService fieldService;
     private final DataService dataService;
 
+    private final TagResponseMapper tagResponseMapper;
 
-    @Transactional(readOnly = true)
+
     public List<CardTag> getTags(Long catalogId, Long cardId) {
-        if (!cardRepository.existsById(catalogId, cardId)) {
-            throw new RuntimeException("Запрашиваемая карточка не существует");
-        }
-
         return tagRepository
                 .findAll(catalogId, cardId)
                 .stream()
-                .map(this::convert)
+                .map(tagResponseMapper::convert)
                 .toList();
     }
 
 
     @Transactional
     public List<CardTag> addTags(Long catalogId, Long cardId, List<CardTag> cardTags) {
-        if (!cardRepository.existsById(catalogId, cardId)) {
-            throw new RuntimeException("Запрашиваемая карточка не существует");
-        }
 
         for (CardTag tag : cardTags) {
-            Long fieldId = tag.getFieldId();
+            long fieldId = tag.getFieldId();
             String value = tag.getValue();
 
-            if (!fieldRepository.existsById(catalogId, fieldId)) {
+            if (!fieldService.existsById(catalogId, fieldId)) {
                 throw new RuntimeException("Запрашиваемого поля не существует");
             }
 
@@ -77,17 +68,6 @@ public class TagService {
     @Transactional
     public void deleteTag(Long catalogId, Long cardId, Long fieldId) {
         tagRepository.delete(catalogId, cardId, fieldId);
-    }
-
-
-    private CardTag convert(Tag tag) {
-        String value = dataService.get(tag.dataType(), tag.valueId());
-
-        CardTag cardTag = new CardTag();
-        cardTag.setFieldId(tag.fieldId());
-        cardTag.setValue(value);
-
-        return cardTag;
     }
 
 }

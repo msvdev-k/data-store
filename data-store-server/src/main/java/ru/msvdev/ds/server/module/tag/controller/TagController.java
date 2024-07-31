@@ -1,10 +1,11 @@
-package ru.msvdev.ds.server.controller;
+package ru.msvdev.ds.server.module.tag.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import ru.msvdev.ds.server.service.TagService;
+import ru.msvdev.ds.server.module.card.service.CardService;
+import ru.msvdev.ds.server.module.tag.service.TagService;
 import ru.msvdev.ds.server.openapi.api.TagApi;
 import ru.msvdev.ds.server.openapi.model.CardResponse;
 import ru.msvdev.ds.server.openapi.model.CardTag;
@@ -16,11 +17,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TagController implements TagApi {
 
+    private final CardService cardService;
     private final TagService tagService;
 
 
     @Override
     public ResponseEntity<CardResponse> addTags(UUID userUUID, Long catalogId, Long cardId, List<CardTag> cardTags) {
+        if (!cardService.existsById(catalogId, cardId)) {
+            throw new RuntimeException("Запрашиваемая карточка не существует");
+        }
+
         List<CardTag> cardTagList = tagService.addTags(catalogId, cardId, cardTags);
         CardResponse cardResponse = new CardResponse();
         cardResponse.setId(cardId);
