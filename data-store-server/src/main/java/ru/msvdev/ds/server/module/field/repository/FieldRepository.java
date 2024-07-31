@@ -20,7 +20,7 @@ public interface FieldRepository extends Repository<Field, Long> {
 
 
     @Query("""
-            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
+            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS data_type, t.format
             FROM fields AS t
             INNER JOIN value_types AS tp ON tp.id = t.type_id
             WHERE t.id = :id AND t.catalog_id = :catalogId
@@ -29,7 +29,7 @@ public interface FieldRepository extends Repository<Field, Long> {
 
 
     @Query("""
-            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
+            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS data_type, t.format
             FROM fields AS t
             INNER JOIN value_types AS tp ON tp.id = t.type_id
             WHERE t.catalog_id = :catalogId
@@ -43,7 +43,7 @@ public interface FieldRepository extends Repository<Field, Long> {
                 VALUES (:catalogId, :order, :name, :description, :#{#type.id}, :format)
                 RETURNING *
             )
-            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS value_type, t.format
+            SELECT t.id, t.catalog_id, t."order", t.name, t.description, tp.type AS data_type, t.format
             FROM inserted_field_template AS t
             INNER JOIN value_types AS tp ON tp.id = t.type_id
             """)

@@ -125,4 +125,9 @@ public class FieldService {
         return field.dataType();
     }
 
+
+    public boolean existsById(long catalogId, long fieldId) {
+        return fieldRepository.existsById(catalogId, fieldId);
+    }
+
 }
