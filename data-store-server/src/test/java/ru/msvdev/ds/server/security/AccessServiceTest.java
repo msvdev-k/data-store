@@ -21,35 +21,35 @@ public class AccessServiceTest {
     private final static long CATALOG_ID = 1;
     private final static String ALL_AUTHORITIES_WITHOUT_MASTER = "ALL_AUTHORITIES_WITHOUT_MASTER";
 
-    private final static Map<String, UUID> USERS = new HashMap<>();
-    private final static Map<String, List<Authority>> AUTHORITIES = new HashMap<>();
+    private final static Map<String, UUID> users = new HashMap<>();
+    private final static Map<String, List<Authority>> authorities = new HashMap<>();
 
 
     @BeforeAll
     static void init() {
         AuthorityService mockAuthorityService = Mockito.mock(AuthorityService.class);
 
-        USERS.put(ALL_AUTHORITIES_WITHOUT_MASTER, UUID.randomUUID());
-        AUTHORITIES.put(ALL_AUTHORITIES_WITHOUT_MASTER, new ArrayList<>());
+        users.put(ALL_AUTHORITIES_WITHOUT_MASTER, UUID.randomUUID());
+        authorities.put(ALL_AUTHORITIES_WITHOUT_MASTER, new ArrayList<>());
 
         for (Authority authority : Authority.values()) {
             String authority_name = authority.name();
 
-            USERS.put(authority_name, UUID.randomUUID());
-            AUTHORITIES.put(authority_name, List.of(authority));
+            users.put(authority_name, UUID.randomUUID());
+            authorities.put(authority_name, List.of(authority));
 
             Mockito
-                    .when(mockAuthorityService.loadAuthorities(USERS.get(authority_name), CATALOG_ID))
-                    .thenReturn(AUTHORITIES.get(authority_name));
+                    .when(mockAuthorityService.loadAuthorities(users.get(authority_name), CATALOG_ID))
+                    .thenReturn(authorities.get(authority_name));
 
             if (authority != Authority.MASTER) {
-                AUTHORITIES.get(ALL_AUTHORITIES_WITHOUT_MASTER).add(authority);
+                authorities.get(ALL_AUTHORITIES_WITHOUT_MASTER).add(authority);
             }
         }
 
         Mockito
-                .when(mockAuthorityService.loadAuthorities(USERS.get(ALL_AUTHORITIES_WITHOUT_MASTER), CATALOG_ID))
-                .thenReturn(AUTHORITIES.get(ALL_AUTHORITIES_WITHOUT_MASTER));
+                .when(mockAuthorityService.loadAuthorities(users.get(ALL_AUTHORITIES_WITHOUT_MASTER), CATALOG_ID))
+                .thenReturn(authorities.get(ALL_AUTHORITIES_WITHOUT_MASTER));
 
         accessService = new SecurityConfig().catalogAccessService(mockAuthorityService);
     }
@@ -94,8 +94,8 @@ public class AccessServiceTest {
 
 
     private static Stream<Arguments> getPermissionsMethodSource_MASTER() {
-        UUID userUuid = USERS.get(Authority.MASTER.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.MASTER.name());
+        UUID userUuid = users.get(Authority.MASTER.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.MASTER.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -116,8 +116,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.OK),
@@ -126,8 +126,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_GRANT_AUTHORITY() {
-        UUID userUuid = USERS.get(Authority.GRANT_AUTHORITY.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.GRANT_AUTHORITY.name());
+        UUID userUuid = users.get(Authority.GRANT_AUTHORITY.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.GRANT_AUTHORITY.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -148,8 +148,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -158,8 +158,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_READING() {
-        UUID userUuid = USERS.get(Authority.READING.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.READING.name());
+        UUID userUuid = users.get(Authority.READING.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.READING.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -180,8 +180,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -190,8 +190,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_WRITING() {
-        UUID userUuid = USERS.get(Authority.WRITING.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.WRITING.name());
+        UUID userUuid = users.get(Authority.WRITING.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.WRITING.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -212,8 +212,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -222,8 +222,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_DELETING() {
-        UUID userUuid = USERS.get(Authority.DELETING.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.DELETING.name());
+        UUID userUuid = users.get(Authority.DELETING.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.DELETING.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -244,8 +244,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -254,8 +254,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FIELD_TEMPLATE_WRITING() {
-        UUID userUuid = USERS.get(Authority.FIELD_TEMPLATE_WRITING.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FIELD_TEMPLATE_WRITING.name());
+        UUID userUuid = users.get(Authority.FIELD_TEMPLATE_WRITING.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FIELD_TEMPLATE_WRITING.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -276,8 +276,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -286,8 +286,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FIELD_TEMPLATE_DELETING() {
-        UUID userUuid = USERS.get(Authority.FIELD_TEMPLATE_DELETING.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FIELD_TEMPLATE_DELETING.name());
+        UUID userUuid = users.get(Authority.FIELD_TEMPLATE_DELETING.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FIELD_TEMPLATE_DELETING.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -308,8 +308,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -318,8 +318,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FILE_UPLOAD() {
-        UUID userUuid = USERS.get(Authority.FILE_UPLOAD.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FILE_UPLOAD.name());
+        UUID userUuid = users.get(Authority.FILE_UPLOAD.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FILE_UPLOAD.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -340,8 +340,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -350,8 +350,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FILE_DOWNLOAD() {
-        UUID userUuid = USERS.get(Authority.FILE_DOWNLOAD.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FILE_DOWNLOAD.name());
+        UUID userUuid = users.get(Authority.FILE_DOWNLOAD.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FILE_DOWNLOAD.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -372,8 +372,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -382,8 +382,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FILE_SYSTEM_READ() {
-        UUID userUuid = USERS.get(Authority.FILE_SYSTEM_READ.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FILE_SYSTEM_READ.name());
+        UUID userUuid = users.get(Authority.FILE_SYSTEM_READ.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FILE_SYSTEM_READ.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -404,8 +404,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -414,8 +414,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FILE_SYSTEM_WRITE() {
-        UUID userUuid = USERS.get(Authority.FILE_SYSTEM_WRITE.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FILE_SYSTEM_WRITE.name());
+        UUID userUuid = users.get(Authority.FILE_SYSTEM_WRITE.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FILE_SYSTEM_WRITE.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -436,8 +436,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -446,8 +446,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_FILE_SYSTEM_DELETE() {
-        UUID userUuid = USERS.get(Authority.FILE_SYSTEM_DELETE.name());
-        List<Authority> authorities = AUTHORITIES.get(Authority.FILE_SYSTEM_DELETE.name());
+        UUID userUuid = users.get(Authority.FILE_SYSTEM_DELETE.name());
+        List<Authority> authorities = AccessServiceTest.authorities.get(Authority.FILE_SYSTEM_DELETE.name());
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -468,8 +468,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
@@ -478,8 +478,8 @@ public class AccessServiceTest {
     }
 
     private static Stream<Arguments> getPermissionsMethodSource_ALL_AUTHORITIES_WITHOUT_MASTER() {
-        UUID userUuid = USERS.get(ALL_AUTHORITIES_WITHOUT_MASTER);
-        List<Authority> authorities = AUTHORITIES.get(ALL_AUTHORITIES_WITHOUT_MASTER);
+        UUID userUuid = users.get(ALL_AUTHORITIES_WITHOUT_MASTER);
+        List<Authority> authorities = AccessServiceTest.authorities.get(ALL_AUTHORITIES_WITHOUT_MASTER);
 
         return Stream.of(
                 Arguments.of(userUuid, authorities, "/catalog", HttpMethod.GET, Permission.OK),
@@ -500,8 +500,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.GET, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/user", HttpMethod.DELETE, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.POST, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/file", HttpMethod.PUT, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.POST, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/upload", HttpMethod.PUT, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),

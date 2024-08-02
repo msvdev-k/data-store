@@ -22,4 +22,3 @@ datastore:
       upload-chunk-timeout: 5m
       upload-session-timeout: 7d
       processing-thread-count: 1
-      processing-buffer-size: 10

@@ -22,6 +22,8 @@ tags:
     description: Управление полями (метками, тегами) в карточках
   - name: file
     description: Управление загрузкой/выгрузкой содержимого файлов с/на сервер
+  - name: upload
+    description: Управление выгрузкой содержимого файлов на сервер
   - name: user
     description: Управление полномочиями пользователей при работе картотеками
 
@@ -370,7 +372,7 @@ paths:
           description: Server Error
 
 
-  /catalog/{catalogId}/file:
+  /catalog/{catalogId}/upload:
     parameters:
       - $ref: '#/components/parameters/userUuidParameter'
       - $ref: '#/components/parameters/catalogIdParameter'
@@ -380,21 +382,21 @@ paths:
         - $ref: '#/components/parameters/resetError'
       summary: Открыть сессию выгрузки содержимого файла на сервер
       tags:
-        - file
-      operationId: openUploadSession
+        - upload
+      operationId: openSession
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UploadFileRequest'
+              $ref: '#/components/schemas/UploadRequest'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UploadFileResponse'
+                $ref: '#/components/schemas/UploadResponse'
         '4XX':
           description: Client Error
         '5XX':
@@ -403,7 +405,7 @@ paths:
     put:
       summary: Выгрузить фрагмент файла
       tags:
-        - file
+        - upload
       operationId: addChunk
       requestBody:
         required: true
@@ -418,6 +420,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadFileResponse'
+                $ref: '#/components/schemas/UploadResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
         '4XX':
           description: Client Error
         '5XX':
@@ -572,6 +580,7 @@ components:
         default: false
         example: true
       description: Флаг сброса ошибки сессии выгрузки файла
+      description: Флаг сброса ошибки
 
 
   schemas:
@@ -744,7 +753,7 @@ components:
           items:
             $ref: '#/components/schemas/CardTag'
 
-    UploadFileState:
+    UploadState:
       type: string
       description: Состояния в которых могут находится выгружаемые на сервер файлы
       example: UPLOAD
@@ -755,7 +764,7 @@ components:
         "ERROR"
       ]
 
-    UploadFileRequest:
+    UploadRequest:
       type: object
       required:
         - sha256
@@ -792,20 +801,20 @@ components:
           format: int32
           description: Порядковый номер выгружаемого проекта
           minimum: 1
-          example: 1
+          example: 4
         content:
           type: string
           description: Содержимое фрагмента файла в виде строки Base64
           example: "YTg4Njc4ODUtAsUyNC00Y2I0LTg2NzGtODUyODI0MWNiwD=="
 
-    UploadFileResponse:
+    UploadResponse:
       type: object
       properties:
         state:
-          $ref: '#/components/schemas/UploadFileState'
+          $ref: '#/components/schemas/UploadState'
         sha256:
           type: string
-          description: Hash-сумма выгружаемого на сервер файла
+          description: Hash-сумма выгружаемого на сервер файла (SHA-256)
           minLength: 64
           maxLength: 64
           example: "15bae9804c53bc12fb37826d625a156aad04deee685312dfc904c605a7e9b3cc"
@@ -839,7 +848,7 @@ components:
           description: Идентификатор сессии выгрузки файла
           minimum: 1
           example: 489651
-        upload_number:
+        chunk_number:
           type: integer
           format: int32
           description: Порядковый номер фрагмента файла который необходимо выгрузить на сервер. Номера отсчитываются от единицы

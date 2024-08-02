@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.msvdev.ds.server.base.ApplicationTest;
+import ru.msvdev.ds.server.config.property.UploadSessionProperty;
 
 @SpringBootTest
 public class UploadSessionPropertyTest extends ApplicationTest {
