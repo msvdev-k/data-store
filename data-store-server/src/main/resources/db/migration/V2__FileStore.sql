@@ -69,11 +69,11 @@ CREATE TABLE "files" (
     "uname"        VARCHAR(128) GENERATED ALWAYS AS (upper("name")) STORED
 );
 
-ALTER TABLE "files" ADD CONSTRAINT "files_folder_check" CHECK  (("folder_id" IS NULL AND "uname" = 'ROOT') OR "folder_id" IS NOT NULL);
+ALTER TABLE "files" ADD CONSTRAINT "files_folder_check" CHECK  (("folder_id" IS NULL AND "uname" = '$ROOT$') OR "folder_id" IS NOT NULL);
 ALTER TABLE "files" ADD CONSTRAINT "files_unique_name"  UNIQUE NULLS NOT DISTINCT ("catalog_id", "folder_id", "uname");
 ALTER TABLE "files" ADD CONSTRAINT "files_catalog_fk"
     FOREIGN KEY ("catalog_id") REFERENCES "catalogs" ("id")
-    ON DELETE RESTRICT
+    ON DELETE CASCADE
     ON UPDATE CASCADE;
 
 ALTER TABLE "files" ADD CONSTRAINT "files_container_fk"
@@ -83,7 +83,7 @@ ALTER TABLE "files" ADD CONSTRAINT "files_container_fk"
 
 ALTER TABLE "files" ADD CONSTRAINT "files_folder_fk"
     FOREIGN KEY ("folder_id") REFERENCES "files" ("id")
-    ON DELETE RESTRICT
+    ON DELETE CASCADE
     ON UPDATE CASCADE;
 
 

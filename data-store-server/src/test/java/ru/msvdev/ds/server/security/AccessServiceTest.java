@@ -121,7 +121,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.OK),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.OK),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.OK)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.OK),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.OK)
         );
     }
 
@@ -153,7 +154,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -185,7 +187,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -217,7 +220,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -249,7 +253,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -281,7 +286,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -313,7 +319,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -345,7 +352,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -377,7 +385,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -409,7 +418,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -441,7 +451,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -473,7 +484,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 
@@ -505,7 +517,8 @@ public class AccessServiceTest {
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.GET, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.POST, Permission.FORBIDDEN),
                 Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.PUT, Permission.FORBIDDEN),
-                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN)
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*", HttpMethod.DELETE, Permission.FORBIDDEN),
+                Arguments.of(userUuid, authorities, "/catalog/1/fs/*/download", HttpMethod.GET, Permission.FORBIDDEN)
         );
     }
 

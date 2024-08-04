@@ -1,6 +1,5 @@
 package ru.msvdev.ds.server.module.upload.tool;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ru.msvdev.ds.server.module.upload.base.ChunkingSchema;
 import ru.msvdev.ds.server.module.upload.base.UploadSessionState;
@@ -11,11 +10,10 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 
-@Disabled
 public class SqlScriptGeneratorForUploadTest {
 
 
-    @Test
+//    @Test
     void containerSqlScriptGenerator() throws NoSuchAlgorithmException {
         // region Given
         int containerID = 364;
@@ -93,7 +91,7 @@ public class SqlScriptGeneratorForUploadTest {
     }
 
 
-    @Test
+//    @Test
     void uploadSessionSqlScriptGenerator() throws NoSuchAlgorithmException {
         // region Given
         String userUUID = "cf13dd5d-0092-47c7-93dd-5d0092f7c7d0";

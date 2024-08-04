@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.POST, MASTER)
                 .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.PUT, MASTER)
                 .addMatcher("catalog/{catalogId}/fs/*", HttpMethod.DELETE, MASTER)
+                .addMatcher("catalog/{catalogId}/fs/*/download", HttpMethod.GET, MASTER)
 
                 .build();
     }

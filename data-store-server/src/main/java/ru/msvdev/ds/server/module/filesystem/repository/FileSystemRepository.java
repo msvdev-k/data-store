@@ -1,10 +1,9 @@
-package ru.msvdev.ds.server.dao.repository.file;
+package ru.msvdev.ds.server.module.filesystem.repository;
 
 import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.Repository;
-import ru.msvdev.ds.server.dao.entity.file.ChunkingSchema;
-import ru.msvdev.ds.server.dao.entity.file.FileInfo;
+import ru.msvdev.ds.server.module.filesystem.entity.FileInfo;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -13,8 +12,7 @@ import java.util.List;
 /**
  * Репозиторий для управления файловой системой картотек
  */
-public interface FileRepository extends Repository<FileInfo, Long> {
-
+public interface FileSystemRepository extends Repository<FileInfo, Long> {
 
     /**
      * Создать корневую директорию файловой системы картотеки.
@@ -27,7 +25,7 @@ public interface FileRepository extends Repository<FileInfo, Long> {
     @Modifying
     @Query("""
             INSERT INTO files (catalog_id, container_id, name, mime_type, create_date)
-            VALUES (:catalogId, (SELECT id FROM empty_container), 'ROOT', 'inode/directory', :createDate)
+            VALUES (:catalogId, (SELECT id FROM empty_container), '$ROOT$', 'inode/directory', :createDate)
             """)
     boolean insertRoot(long catalogId, OffsetDateTime createDate);
 
@@ -38,20 +36,22 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @param catalogId  идентификатор картотеки
      * @param name       название создаваемой директории
      * @param createDate дата и время создания директории
-     * @return идентификатор созданной директории
+     * @return дескриптор созданной директории
      */
     @Query("""
             WITH root_id AS (
                 SELECT id FROM files
-                WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = 'ROOT'
+                WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = '$ROOT$'
             ), inserted_folder AS (
                 INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
                 VALUES (:catalogId, (SELECT id FROM root_id), (SELECT id FROM empty_container), :name, 'inode/directory', :createDate)
-                RETURNING id
+                RETURNING *
             )
-            SELECT id FROM inserted_folder
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
+            FROM inserted_folder  AS f
+            INNER JOIN containers AS c ON c.id = f.container_id
             """)
-    Long insertFolder(long catalogId, String name, OffsetDateTime createDate);
+    FileInfo insertFolder(long catalogId, String name, OffsetDateTime createDate);
 
 
     /**
@@ -61,20 +61,22 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @param parentFolderId идентификатор родительской директории
      * @param name           название создаваемой директории
      * @param createDate     дата и время создания директории
-     * @return идентификатор созданной директории
+     * @return дескриптор созданной директории
      */
     @Query("""
-            WITH folder_id AS (
+            WITH parent_folder_id AS (
                 SELECT id FROM files
-                WHERE id = :parentFolderId AND catalog_id = :catalogId
+                WHERE id = :parentFolderId AND catalog_id = :catalogId AND mime_type = 'inode/directory'
             ), inserted_folder AS (
                 INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
-                VALUES (:catalogId, (SELECT id FROM folder_id), (SELECT id FROM empty_container), :name, 'inode/directory', :createDate)
-                RETURNING id
+                VALUES (:catalogId, (SELECT id FROM parent_folder_id), (SELECT id FROM empty_container), :name, 'inode/directory', :createDate)
+                RETURNING *
             )
-            SELECT id FROM inserted_folder
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
+            FROM inserted_folder  AS f
+            INNER JOIN containers AS c ON c.id = f.container_id
             """)
-    Long insertFolder(long catalogId, long parentFolderId, String name, OffsetDateTime createDate);
+    FileInfo insertFolder(long catalogId, long parentFolderId, String name, OffsetDateTime createDate);
 
 
     /**
@@ -85,20 +87,22 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @param containerId идентификатор контейнера с бинарными данными файла
      * @param mimeType    тип данных файла
      * @param createDate  дата и время создания файла
-     * @return идентификатор созданного файла
+     * @return дескриптор созданного файла
      */
     @Query("""
             WITH root_id AS (
                 SELECT id FROM files
-                WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = 'ROOT'
+                WHERE catalog_id = :catalogId AND folder_id IS NULL AND uname = '$ROOT$'
             ), inserted_file AS (
                 INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
                 VALUES (:catalogId, (SELECT id FROM root_id), :containerId, :name, :mimeType, :createDate)
-                RETURNING id
+                RETURNING *
             )
-            SELECT id FROM inserted_file
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
+            FROM inserted_file    AS f
+            INNER JOIN containers AS c ON c.id = f.container_id
             """)
-    Long insertFile(long catalogId, String name, long containerId, String mimeType, OffsetDateTime createDate);
+    FileInfo insertFile(long catalogId, String name, long containerId, String mimeType, OffsetDateTime createDate);
 
 
     /**
@@ -110,96 +114,92 @@ public interface FileRepository extends Repository<FileInfo, Long> {
      * @param containerId    идентификатор контейнера с бинарными данными файла
      * @param mimeType       тип данных файла
      * @param createDate     дата и время создания файла
-     * @return идентификатор созданного файла
+     * @return дескриптор созданного файла
      */
     @Query("""
-            WITH folder_id AS (
+            WITH parent_folder_id AS (
                 SELECT id FROM files
-                WHERE id = :parentFolderId AND catalog_id = :catalogId
+                WHERE id = :parentFolderId AND catalog_id = :catalogId AND mime_type = 'inode/directory'
             ), inserted_file AS (
                 INSERT INTO files (catalog_id, folder_id, container_id, name, mime_type, create_date)
-                VALUES (:catalogId, (SELECT id FROM folder_id), :containerId, :name, :mimeType, :createDate)
-                RETURNING id
+                VALUES (:catalogId, (SELECT id FROM parent_folder_id), :containerId, :name, :mimeType, :createDate)
+                RETURNING *
             )
-            SELECT id FROM inserted_file
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
+            FROM inserted_file    AS f
+            INNER JOIN containers AS c ON c.id = f.container_id
             """)
-    Long insertFile(long catalogId, long parentFolderId, String name, long containerId, String mimeType, OffsetDateTime createDate);
+    FileInfo insertFile(long catalogId, long parentFolderId, String name, long containerId, String mimeType, OffsetDateTime createDate);
 
 
     /**
-     * Получить информацию о файле/каталоге по его ID
+     * Получить информацию о файле или каталоге по его ID
      *
      * @param catalogId идентификатор картотеки
-     * @param fileId    идентификатор файла/каталога
-     * @return объект с информацией о файле/каталоге
+     * @param nodeId    идентификатор файла или каталога
+     * @return дескриптор файла
      */
     @Query("""
-            SELECT f.id, COALESCE(f.folder_id, -1) AS folder_id, f.name, f.mime_type, f.create_date, c.size
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
             FROM files AS f
             INNER JOIN containers AS c ON c.id = f.container_id
-            WHERE f.id = :fileId AND f.catalog_id = :catalogId
+            WHERE f.id = :nodeId AND f.catalog_id = :catalogId
             """)
-    FileInfo findById(long catalogId, long fileId);
+    FileInfo findById(long catalogId, long nodeId);
 
 
     /**
-     * Получить hash-сумму файла по его ID
+     * Переименовать файл или каталог
      *
      * @param catalogId идентификатор картотеки
-     * @param fileId    идентификатор файла
-     * @return hash-сумма файла (sha256)
+     * @param nodeId    идентификатор файла или каталога
+     * @param newName   новое название файли или каталога
+     * @return флаг операции: TRUE - успех, FALSE - операция не выполнена
      */
-    @Query("""
-            SELECT c.sha256
-            FROM files AS f
-            INNER JOIN containers AS c ON c.id = f.container_id
-            WHERE f.id = :fileId AND f.catalog_id = :catalogId
-            """)
-    String findSha256ById(long catalogId, long fileId);
+    @Modifying
+    @Query("UPDATE files SET name = :newName WHERE id = :nodeId AND catalog_id = :catalogId")
+    boolean rename(long catalogId, long nodeId, String newName);
 
 
     /**
-     * Получить схему разбиения файла по его ID
+     * Удалить файл или директорию из файловой системы картотеки.
+     * Директории удаляются каскадно со всем содержимым.
+     * Корневую директорию удалить нельзя
      *
      * @param catalogId идентификатор картотеки
-     * @param fileId    идентификатор файла
-     * @return объект представляющий схему разбиения файла
+     * @param nodeId    идентификатор удаляемого файла или каталога
      */
-    @Query("""
-            SELECT c.size, c.chunk_count AS "count", c.chunk_size, c.last_chunk_size
-            FROM files AS f
-            INNER JOIN containers AS c ON c.id = f.container_id
-            WHERE f.id = :fileId AND f.catalog_id = :catalogId
-            """)
-    ChunkingSchema findChunkingSchemaById(long catalogId, long fileId);
+    @Modifying
+    @Query("DELETE FROM files WHERE id = :nodeId AND catalog_id = :catalogId AND uname != '$ROOT$'")
+    boolean remove(long catalogId, long nodeId);
 
 
     /**
-     * Получить список файлов/каталогов расположенных в корне файловой системы картотеки
+     * Получить список файлов и каталогов расположенных в корне файловой системы картотеки
      *
      * @param catalogId идентификатор картотеки
-     * @return список файлов/каталогов
+     * @return список файлов и каталогов
      */
     @Query("""
-            SELECT f.id, f.folder_id, f.name, f.mime_type, f.create_date, c.size
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
             FROM       files      AS f
             INNER JOIN containers AS c    ON c.id    = f.container_id
             INNER JOIN files      AS root ON root.id = f.folder_id
-            WHERE f.catalog_id = :catalogId AND root.folder_id IS NULL AND root.uname = 'ROOT'
+            WHERE f.catalog_id = :catalogId AND root.folder_id IS NULL AND root.uname = '$ROOT$'
             LIMIT 16384
             """)
     List<FileInfo> findAll(long catalogId);
 
 
     /**
-     * Получить список файлов/каталогов расположенных в указанном каталоге
+     * Получить список файлов и каталогов расположенных в указанной директории
      *
      * @param catalogId идентификатор картотеки
-     * @param folderId  идентификатор каталога
-     * @return список файлов/каталогов
+     * @param folderId  идентификатор директории
+     * @return список файлов и каталогов
      */
     @Query("""
-            SELECT f.id, f.folder_id, f.name, f.mime_type, f.create_date, c.size
+            SELECT f.id, f.name, f.mime_type, f.create_date, c.size
             FROM       files      AS f
             INNER JOIN containers AS c   ON c.id   = f.container_id
             INNER JOIN files      AS fld ON fld.id = f.folder_id
@@ -207,5 +207,16 @@ public interface FileRepository extends Repository<FileInfo, Long> {
             LIMIT 16384
             """)
     List<FileInfo> findAll(long catalogId, long folderId);
+
+
+    /**
+     * Найти идентификатор контейнера с бинарными данными по его hash-сумме.
+     * В данном контейнере хранится содержимое файла
+     *
+     * @param sha256 hash-сумма (SHA-256)
+     * @return идентификатор контейнера с данными
+     */
+    @Query("SELECT id FROM containers WHERE sha256 = :sha256")
+    Long findContainerIdBySha256(String sha256);
 
 }

@@ -20,10 +20,10 @@ tags:
     description: Управление карточками
   - name: tag
     description: Управление полями (метками, тегами) в карточках
-  - name: file
-    description: Управление загрузкой/выгрузкой содержимого файлов с/на сервер
   - name: upload
     description: Управление выгрузкой содержимого файлов на сервер
+  - name: fs
+    description: Управление файловой системой картотеки
   - name: user
     description: Управление полномочиями пользователей при работе картотеками
 
@@ -419,13 +419,124 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UploadFileResponse'
                 $ref: '#/components/schemas/UploadResponse'
         '4XX':
           description: Client Error
         '5XX':
           description: Server Error
 
+
+  /catalog/{catalogId}/fs/{nodeId}:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/nodeIdParameter'
+
+    get:
+      summary: Получить список файлов и каталогов из указанной директории файловой системы картотеки
+      tags:
+        - fs
+      operationId: getFiles
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileSystemResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    post:
+      summary: Создать новый файл или каталог в указанной директории файловой системы картотеки
+      tags:
+        - fs
+      operationId: newFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileSystemRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSystemResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    put:
+      summary: Переименовать файл или каталог
+      tags:
+        - fs
+      operationId: renameFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_name
+              properties:
+                new_name:
+                  type: string
+                  description: Новое название файла или каталога
+                  example: "Новый файл"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileSystemResponse'
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+    delete:
+      summary: Удалить файл или каталог. Внимание! Каталог удаляется каскадно со всем содержимым. Удалённые файлы восстановлению не подлежат
+      tags:
+        - fs
+      operationId: removeFile
+      responses:
+        '204':
+          description: No Content
+        '4XX':
+          description: Client Error
+        '5XX':
+          description: Server Error
+
+
+  /catalog/{catalogId}/fs/{nodeId}/download:
+    parameters:
+      - $ref: '#/components/parameters/userUuidParameter'
+      - $ref: '#/components/parameters/catalogIdParameter'
+      - $ref: '#/components/parameters/nodeIdParameter'
+      - $ref: '#/components/parameters/chunkNumberQueryParameter'
+
+    get:
+      summary: Получить содержимое указанного файла
+      tags:
+        - fs
+      operationId: getFileContent
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadResponse'
         '4XX':
           description: Client Error
         '5XX':
@@ -538,6 +649,16 @@ components:
         type: integer
         format: int64
       description: Идентификатор карточки
+    
+    nodeIdParameter:
+      in: path
+      name: nodeId
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+      description: Идентификатор каталога или файла в файловой системе картотеки (0 - идентификатор корневой директории)
 
     pageNumberParameter:
       in: query
@@ -579,8 +700,18 @@ components:
         type: boolean
         default: false
         example: true
-      description: Флаг сброса ошибки сессии выгрузки файла
       description: Флаг сброса ошибки
+
+    chunkNumberQueryParameter:
+      in: query
+      name: chunk
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 3
+      description: Порядковый номер фрагмента содержимого файла, запрашиваемого пользователем
 
 
   schemas:
@@ -870,4 +1001,103 @@ components:
           type: string
           format: date-time
           description: Дата и время до закрытия сессии выгрузки фрагмента файла
+          example: "2024-05-05T10:34:15Z"
+
+    FileSystemRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название файла или каталога
+          example: "Новый файл"
+        mime_type:
+          type: string
+          description: Тип файла
+          example: "application/pdf"
+        sha256:
+          type: string
+          description: Hash-сумма файла (алгоритм SHA-256)
+          minLength: 64
+          maxLength: 64
+          example: "15bae9804c53bc12fb37826d625a156aad04deee685312dfc904c605a7e9b3cc"
+
+    FileSystemResponse:
+      type: object
+      properties:
+        node_id:
+          type: integer
+          format: int64
+          description: Идентификатор файла или каталога в файловой системы картотеки
+          example: 3883008
+        name:
+          type: string
+          description: Название файла или каталога
+          example: "Новый файл"
+        mime_type:
+          type: string
+          description: Тип файла
+          example: "application/pdf"
+        size:
+          type: integer
+          format: int64
+          description: Размер файла (байт)
+          example: 53370
+        created:
+          type: string
+          format: date-time
+          description: Дата и время создания файла или каталога
           example: "2024-05-05T10:34:15.293Z"
+
+    DownloadResponse:
+      type: object
+      properties:
+        node_id:
+          type: integer
+          format: int64
+          description: Идентификатор загружаемого файла в файловой системы картотеки
+          example: 3883008
+        sha256:
+          type: string
+          description: Hash-сумма загружаемого файла (SHA-256)
+          example: "15bae9804c53bc12fb37826d625a156aad04deee685312dfc904c605a7e9b3cc"
+        size:
+          type: integer
+          format: int64
+          description: Размер файла (байт)
+          example: 3883008
+        chunk_count:
+          type: integer
+          format: int32
+          description: Количество фрагментов, на которое разбит файл
+          example: 4
+        chunk_size:
+          type: integer
+          format: int32
+          description: Размер фрагментов файла (байт)
+          example: 1048576
+        last_chunk_size:
+          type: integer
+          format: int32
+          description: Размер последнего фрагмента файла (байт)
+          example: 737280
+        number:
+          type: integer
+          format: int32
+          description: Порядковый номер загружаемого фрагмента файла. Номера отсчитываются от единицы
+          example: 4
+        offset:
+          type: integer
+          format: int64
+          description: Смещение фрагмента от начала файла (байт). Смещение отсчитывается от нуля
+          example: 3145728
+        content_size:
+          type: integer
+          format: int32
+          description: Размер загружаемого фрагмента файла (байт)
+          example: 737280
+        content:
+          type: string
+          description: Содержимое фрагмента файла в виде строки Base64
+          example: "YTg4Njc4ODUtAsUyNC00Y2I0LTg2NzGtODUyODI0MWNiwD=="

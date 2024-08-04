@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.msvdev.ds.server.module.catalog.entity.Catalog;
 import ru.msvdev.ds.server.module.catalog.mapper.CatalogResponseMapper;
 import ru.msvdev.ds.server.module.catalog.repository.CatalogRepository;
+import ru.msvdev.ds.server.module.filesystem.service.FileSystemService;
 import ru.msvdev.ds.server.openapi.model.CatalogRequest;
 import ru.msvdev.ds.server.openapi.model.CatalogResponse;
 import ru.msvdev.ds.server.security.Authority;
@@ -22,7 +23,9 @@ public class CatalogService {
 
     private final CatalogRepository catalogRepository;
     private final CatalogResponseMapper catalogResponseMapper;
+
     private final CardService cardService;
+    private final FileSystemService fileSystemService;
 
 
     @Transactional
@@ -41,6 +44,11 @@ public class CatalogService {
         Catalog catalog = catalogRepository.insert(userUUID, name.trim(), description, Authority.MASTER);
         if (catalog == null) {
             throw new RuntimeException("Создать картотеку не удалось");
+        }
+
+        boolean createFileSystemFlag = fileSystemService.createFileSystem(catalog.id());
+        if (!createFileSystemFlag) {
+            throw new RuntimeException("Создать файловую систему для картотеки не удалось");
         }
 
         return catalogResponseMapper.convert(catalog);

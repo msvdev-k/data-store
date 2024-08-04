@@ -88,7 +88,7 @@ VALUES
 -- --------------------------------------------- --
 INSERT INTO "files" ("id", "catalog_id", "container_id", "folder_id", "name", "mime_type", "create_date") OVERRIDING SYSTEM VALUE
 VALUES
-(1, 1, (SELECT "id" FROM "empty_container"), NULL, 'ROOT', 'file/type', '2024-06-25T19:03:57.045Z'),
+(1, 1, (SELECT "id" FROM "empty_container"), NULL, '$ROOT$', 'file/type', '2024-06-25T19:03:57.045Z'),
 (2, 1, (SELECT "id" FROM "empty_container"), 1,    'name', 'file/type', '2024-06-25T19:03:57.045Z');
 
 

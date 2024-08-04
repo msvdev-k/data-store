@@ -1,4 +1,4 @@
-package ru.msvdev.ds.server.dao.entity.file;
+package ru.msvdev.ds.server.module.filesystem.entity;
 
 import java.time.OffsetDateTime;
 
@@ -6,7 +6,6 @@ import java.time.OffsetDateTime;
  * Дескриптор файла (каталога) файловой системы картотеки
  *
  * @param id         идентификатор файла
- * @param folderId   идентификатор каталога, которому принадлежит файл
  * @param name       название файла
  * @param mimeType   тип данных файла
  * @param createDate дата и время создания файла
@@ -14,21 +13,18 @@ import java.time.OffsetDateTime;
  */
 public record FileInfo(
         long id,
-        long folderId,
         String name,
         String mimeType,
         OffsetDateTime createDate,
         long size
 ) {
-    public boolean isRoot() {
-        return folderId < 0;
-    }
+    public static final String DIRECTORY_MIME_TYPE = "inode/directory";
 
     public boolean isDirectory() {
-        return mimeType.equals("inode/directory");
+        return mimeType.equals(DIRECTORY_MIME_TYPE);
     }
 
     public boolean isFile() {
-        return !mimeType.equals("inode/directory");
+        return !mimeType.equals(DIRECTORY_MIME_TYPE);
     }
 }
