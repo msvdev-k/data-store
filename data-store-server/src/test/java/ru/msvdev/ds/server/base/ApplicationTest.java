@@ -12,7 +12,7 @@ public abstract class ApplicationTest {
     public static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER;
 
     static {
-        POSTGRESQL_CONTAINER = new PostgreSQLContainer<>("postgres:16-alpine");
+        POSTGRESQL_CONTAINER = new PostgreSQLContainer<>("postgres:16.3-alpine");
 
         POSTGRESQL_CONTAINER.withReuse(true);
         POSTGRESQL_CONTAINER.withLabel("reuse.UUID", "a54682bc-9174-4732-9ef1-6620b6b1eb22");
