@@ -1,14 +1,27 @@
+# Примечание:
+# контекст Dockerfile определён относительно корневого каталога всего проета
+#
+# Сборка относительно корневого каталога:
+# docker buildx build -f data-store-server/Dockerfile -t msvdevk/data-store-server:latest .
+#
+FROM maven:3.9.8-eclipse-temurin-17-alpine as builder
+
+WORKDIR /app/openapi
+ADD openapi/openapi.yaml .
+
+WORKDIR /app/source
+COPY data-store-server/pom.xml .
+COPY data-store-server/src/main/ ./src/main/
+
+RUN mvn --errors --strict-checksums --threads 1C verify
+
+
 FROM openjdk:17-alpine
 
-ENV DS_SERVER_PORT=8980
-
 WORKDIR /app
+COPY --from=builder /app/source/target/data-store-server-*.jar data-store-server-app.jar
 
-ARG JAR_FILE_VERSION=0.0.1-SNAPSHOT
-ARG JAR_FILE=target/data-store-server-${JAR_FILE_VERSION}.jar
-
-COPY ${JAR_FILE} data-store-server-app.jar
-
+ENV DS_SERVER_PORT=8980
 EXPOSE ${DS_SERVER_PORT}
 
 ENTRYPOINT ["java", "-jar", "data-store-server-app.jar", \
