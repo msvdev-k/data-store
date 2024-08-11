@@ -9,7 +9,7 @@ info:
     url: https://www.gnu.org/licenses/gpl-3.0-standalone.html
 
 servers:
-  - url: http://<hostname>/data-store/api
+  - url: http://hostname
 
 tags:
   - name: catalog
