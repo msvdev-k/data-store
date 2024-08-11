@@ -12,8 +12,7 @@ public class TestDataStoreProvider extends DataStoreProvider {
 
     private final UUID userUuid;
 
-    private TestDataStoreProvider(ApiClient apiClient, UUID userUuid) {
-        super(apiClient);
+    private TestDataStoreProvider(UUID userUuid) {
         this.userUuid = userUuid;
     }
 
@@ -23,17 +22,14 @@ public class TestDataStoreProvider extends DataStoreProvider {
     }
 
     public static TestDataStoreProvider getInstance(String host, int port, UUID userUuid) {
-        ApiClient client = new ApiClient() {
-            @Override
-            protected String getDefaultBaseUri() {
-                return "http://localhost";
-            }
-        };
+        TestDataStoreProvider provider = new TestDataStoreProvider(userUuid);
+
+        ApiClient client = provider.getApiClient();
         client.setScheme("http");
         client.setHost(host);
         client.setPort(port);
 
-        return new TestDataStoreProvider(client, userUuid);
+        return provider;
     }
 
 
