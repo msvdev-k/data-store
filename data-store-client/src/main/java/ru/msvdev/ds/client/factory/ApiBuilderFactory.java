@@ -2,6 +2,7 @@ package ru.msvdev.ds.client.factory;
 
 import ru.msvdev.ds.client.cartalog.Catalog;
 import ru.msvdev.ds.client.datastore.DataStore;
+import ru.msvdev.ds.client.field.Field;
 import ru.msvdev.ds.client.openapi.ApiClient;
 import ru.msvdev.ds.client.openapi.api.*;
 import ru.msvdev.ds.client.provider.DataStoreProvider;
@@ -54,7 +55,16 @@ public class ApiBuilderFactory implements BuilderFactory {
     @Override
     public Catalog.CatalogBuilder getCatalogBuilder() {
         return (Catalog.CatalogBuilder) builderFactory.getCatalogBuilder()
+                .builderFactory(this)
                 .catalogApi(catalogApi)
+                .fieldApi(fieldApi)
                 .userUuid(userUuid);
     }
+
+
+    @Override
+    public Field.FieldBuilder getFieldBuilder() {
+        return builderFactory.getFieldBuilder();
+    }
+
 }
