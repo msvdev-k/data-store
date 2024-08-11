@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "http://<hostname>/data-store/api"
+      "url": "http://hostname"
     }
   ],
   "tags": [
