@@ -64,7 +64,9 @@ public class ApiBuilderFactory implements BuilderFactory {
 
     @Override
     public Field.FieldBuilder getFieldBuilder() {
-        return builderFactory.getFieldBuilder();
+        return (Field.FieldBuilder) builderFactory.getFieldBuilder()
+                .fieldApi(fieldApi)
+                .userUuid(userUuid);
     }
 
 }

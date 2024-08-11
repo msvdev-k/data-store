@@ -27,6 +27,7 @@ public class Catalog implements Validated {
     private final FieldApi fieldApi;
     private final UUID userUuid;
 
+    @Getter
     private Long id;
     @Getter
     private String name;
@@ -131,6 +132,7 @@ public class Catalog implements Validated {
     private Field fieldResponseToFieldMapper(FieldResponse response) {
         return builderFactory.getFieldBuilder()
                 .fieldResponse(response)
+                .catalog(this)
                 .build();
     }
 

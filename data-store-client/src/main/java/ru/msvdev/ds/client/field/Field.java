@@ -5,8 +5,14 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import ru.msvdev.ds.client.base.Validated;
+import ru.msvdev.ds.client.cartalog.Catalog;
+import ru.msvdev.ds.client.openapi.ApiException;
+import ru.msvdev.ds.client.openapi.api.FieldApi;
+import ru.msvdev.ds.client.openapi.model.FieldRequest;
 import ru.msvdev.ds.client.openapi.model.FieldResponse;
 import ru.msvdev.ds.client.openapi.model.FieldTypes;
+
+import java.util.UUID;
 
 
 @EqualsAndHashCode
@@ -14,6 +20,11 @@ import ru.msvdev.ds.client.openapi.model.FieldTypes;
 @Builder(builderClassName = "DefaultFieldBuilder")
 public class Field implements Validated {
 
+    private final FieldApi fieldApi;
+    private final UUID userUuid;
+    private final Catalog catalog;
+
+    @Getter
     private Long id;
     @Getter
     private Integer order;
@@ -27,9 +38,77 @@ public class Field implements Validated {
     private String format;
 
 
+    /**
+     * Изменить порядковый номер поля при отображении карточки
+     *
+     * @param newOrder новое значение порядкового номера
+     */
+    public void changeOrder(int newOrder) throws ApiException {
+        updateOrderAndNameAndDescription(newOrder, null, null);
+    }
+
+
+    /**
+     * Переименовать поле
+     *
+     * @param newName новое название поля
+     */
+    public void rename(String newName) throws ApiException {
+        updateOrderAndNameAndDescription(-1, newName, null);
+    }
+
+
+    /**
+     * Обновить описание поля
+     *
+     * @param newDescription новое описание поля
+     */
+    public void updateDescription(String newDescription) throws ApiException {
+        updateOrderAndNameAndDescription(-1, null, newDescription);
+    }
+
+    /**
+     * Изменить порядковый номер, название и описание поля
+     *
+     * @param newOrder       новое значение порядкового номера
+     * @param newName        новое название поля
+     * @param newDescription новое описание поля
+     */
+    public void updateOrderAndNameAndDescription(int newOrder, String newName, String newDescription) throws ApiException {
+        FieldRequest request = new FieldRequest()
+                .order(newOrder > 0 ? newOrder : null)
+                .name(newName)
+                .description(newDescription);
+
+        FieldResponse response = fieldApi.updateFieldById(userUuid, catalog.getId(), id, request);
+
+        if (!id.equals(response.getId())) {
+            throw new RuntimeException("Update field order or name or description error");
+        }
+
+        order = response.getOrder();
+        name = response.getName();
+        description = response.getDescription();
+    }
+
+
+    /**
+     * Удалить поле из картотеки
+     */
+    public void remove() throws ApiException {
+        fieldApi.removeFieldById(userUuid, catalog.getId(), id);
+        id = null;
+        order = null;
+        name = null;
+        description = null;
+        type = null;
+        format = null;
+    }
+
+
     @Override
     public boolean isValid() {
-        return id != null;
+        return id != null && catalog.isValid();
     }
 
 
