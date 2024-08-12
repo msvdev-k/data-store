@@ -27,7 +27,7 @@ public class DataStore {
     private final CatalogApi catalogApi;
 
     @Getter
-    private final User masterUser;
+    private final User authUser;
 
 
     /**
@@ -37,7 +37,7 @@ public class DataStore {
      */
     public List<Catalog> getCatalogs() throws ApiException {
         return catalogApi
-                .catalogList(masterUser.getUuid())
+                .catalogList(authUser.getUuid())
                 .stream()
                 .map(this::catalogResponseToCatalogMapper)
                 .toList();
@@ -55,7 +55,7 @@ public class DataStore {
         CatalogRequest request = new CatalogRequest()
                 .name(name).description(description);
 
-        CatalogResponse response = catalogApi.addCatalog(masterUser.getUuid(), request);
+        CatalogResponse response = catalogApi.addCatalog(authUser.getUuid(), request);
         return catalogResponseToCatalogMapper(response);
     }
 

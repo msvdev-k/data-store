@@ -4,6 +4,7 @@ import ru.msvdev.ds.client.model.card.Card;
 import ru.msvdev.ds.client.model.cartalog.Catalog;
 import ru.msvdev.ds.client.model.datastore.DataStore;
 import ru.msvdev.ds.client.model.field.Field;
+import ru.msvdev.ds.client.model.tag.Tag;
 
 
 /**
@@ -25,5 +26,9 @@ public interface BuilderFactory {
 
     default Card.CardBuilder getCardBuilder() {
         return Card.builder();
+    }
+
+    default Tag.TagBuilder getTagBuilder() {
+        return Tag.builder();
     }
 }

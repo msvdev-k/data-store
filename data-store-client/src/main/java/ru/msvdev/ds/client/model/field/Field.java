@@ -24,7 +24,7 @@ public class Field implements Validated {
     @Getter
     private final Catalog catalog;
     @Getter
-    private final User masterUser;
+    private final User authUser;
 
     @Getter
     private Long id;
@@ -82,7 +82,7 @@ public class Field implements Validated {
                 .name(newName)
                 .description(newDescription);
 
-        FieldResponse response = fieldApi.updateFieldById(masterUser.getUuid(), catalog.getId(), id, request);
+        FieldResponse response = fieldApi.updateFieldById(authUser.getUuid(), catalog.getId(), id, request);
 
         if (!id.equals(response.getId())) {
             throw new RuntimeException("Update field order or name or description error");
@@ -98,7 +98,7 @@ public class Field implements Validated {
      * Удалить поле из картотеки
      */
     public void remove() throws ApiException {
-        fieldApi.removeFieldById(masterUser.getUuid(), catalog.getId(), id);
+        fieldApi.removeFieldById(authUser.getUuid(), catalog.getId(), id);
         id = null;
         order = null;
         name = null;

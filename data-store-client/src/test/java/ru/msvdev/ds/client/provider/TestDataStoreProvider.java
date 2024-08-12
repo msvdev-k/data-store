@@ -10,11 +10,11 @@ import ru.msvdev.ds.client.model.user.User;
 public class TestDataStoreProvider extends DataStoreProvider {
 
     private final UserProvider userProvider;
-    private final User masterUser;
+    private final User authUser;
 
     private TestDataStoreProvider(UserProvider userProvider) {
         this.userProvider = userProvider;
-        this.masterUser = userProvider.getAuthUser();
+        this.authUser = userProvider.getAuthUser();
     }
 
 
@@ -35,8 +35,8 @@ public class TestDataStoreProvider extends DataStoreProvider {
 
 
     @Override
-    public User getMasterUser() {
-        return masterUser;
+    public User getAuthUser() {
+        return authUser;
     }
 
     @Override

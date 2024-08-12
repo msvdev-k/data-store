@@ -1,11 +1,10 @@
 package ru.msvdev.ds.client.factory;
 
-import ru.msvdev.ds.client.cartalog.Catalog;
-import ru.msvdev.ds.client.datastore.DataStore;
-import ru.msvdev.ds.client.field.Field;
+import ru.msvdev.ds.client.model.card.Card;
 import ru.msvdev.ds.client.model.cartalog.Catalog;
 import ru.msvdev.ds.client.model.datastore.DataStore;
 import ru.msvdev.ds.client.model.field.Field;
+import ru.msvdev.ds.client.model.tag.Tag;
 import ru.msvdev.ds.client.model.user.User;
 import ru.msvdev.ds.client.openapi.ApiClient;
 import ru.msvdev.ds.client.openapi.api.*;
@@ -20,7 +19,7 @@ public class ApiBuilderFactory implements BuilderFactory {
 
     private final BuilderFactory builderFactory;
 
-    private final User masterUser;
+    private final User authUser;
 
     private final CardApi cardApi;
     private final CatalogApi catalogApi;
@@ -33,7 +32,7 @@ public class ApiBuilderFactory implements BuilderFactory {
 
     public ApiBuilderFactory(BuilderFactory builderFactory, DataStoreProvider dataStoreProvider) {
         this.builderFactory = builderFactory;
-        this.masterUser = dataStoreProvider.getMasterUser();
+        this.authUser = dataStoreProvider.getAuthUser();
 
         ApiClient apiClient = dataStoreProvider.getApiClient();
         cardApi = new CardApi(apiClient);
@@ -50,7 +49,7 @@ public class ApiBuilderFactory implements BuilderFactory {
     public DataStore.DataStoreBuilder getDataStoreBuilder() {
         return builderFactory.getDataStoreBuilder()
                 .builderFactory(this)
-                .masterUser(masterUser)
+                .authUser(authUser)
                 .catalogApi(catalogApi);
     }
 
@@ -60,8 +59,8 @@ public class ApiBuilderFactory implements BuilderFactory {
                 .builderFactory(this)
                 .catalogApi(catalogApi)
                 .fieldApi(fieldApi)
-                .userUuid(userUuid);
-                .masterUser(masterUser);
+                .cardApi(cardApi)
+                .authUser(authUser);
     }
 
 
@@ -69,7 +68,22 @@ public class ApiBuilderFactory implements BuilderFactory {
     public Field.FieldBuilder getFieldBuilder() {
         return (Field.FieldBuilder) builderFactory.getFieldBuilder()
                 .fieldApi(fieldApi)
-                .masterUser(masterUser);
+                .authUser(authUser);
     }
 
+
+    @Override
+    public Card.CardBuilder getCardBuilder() {
+        return (Card.CardBuilder) builderFactory.getCardBuilder()
+                .builderFactory(this)
+                .cardApi(cardApi)
+                .tagApi(tagApi)
+                .authUser(authUser);
+    }
+
+
+    @Override
+    public Tag.TagBuilder getTagBuilder() {
+        return builderFactory.getTagBuilder();
+    }
 }

@@ -33,7 +33,7 @@ public abstract class DataStoreProvider {
      *
      * @return пользователь осуществляющий запросы к Data Store
      */
-    public abstract User getMasterUser();
+    public abstract User getAuthUser();
 
 
     /**
