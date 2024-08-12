@@ -6,14 +6,14 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import ru.msvdev.ds.client.base.Validated;
 import ru.msvdev.ds.client.factory.BuilderFactory;
-import ru.msvdev.ds.client.field.Field;
+import ru.msvdev.ds.client.model.field.Field;
 import ru.msvdev.ds.client.openapi.ApiException;
 import ru.msvdev.ds.client.openapi.api.CatalogApi;
 import ru.msvdev.ds.client.openapi.api.FieldApi;
 import ru.msvdev.ds.client.openapi.model.*;
+import ru.msvdev.ds.client.model.user.User;
 
 import java.util.List;
-import java.util.UUID;
 
 
 @EqualsAndHashCode
@@ -26,6 +26,9 @@ public class Catalog implements Validated {
     private final CatalogApi catalogApi;
     private final FieldApi fieldApi;
     private final UUID userUuid;
+
+    @Getter
+    private final User masterUser;
 
     @Getter
     private Long id;
@@ -64,7 +67,7 @@ public class Catalog implements Validated {
                 .name(newName)
                 .description(newDescription);
 
-        CatalogResponse response = catalogApi.updateCatalogById(userUuid, id, request);
+        CatalogResponse response = catalogApi.updateCatalogById(masterUser.getUuid(), id, request);
 
         if (!id.equals(response.getId())) {
             throw new RuntimeException("Update Catalog name or description error");
@@ -79,7 +82,7 @@ public class Catalog implements Validated {
      * Полностью удалить картотеку из Data Store
      */
     public void remove() throws ApiException {
-        catalogApi.removeCatalogById(userUuid, id);
+        catalogApi.removeCatalogById(masterUser.getUuid(), id);
         id = null;
         name = null;
         description = null;
@@ -93,7 +96,7 @@ public class Catalog implements Validated {
      */
     public List<Field> getFields() throws ApiException {
         return fieldApi
-                .fieldList(userUuid, id)
+                .fieldList(masterUser.getUuid(), id)
                 .stream()
                 .map(this::fieldResponseToFieldMapper)
                 .toList();
@@ -118,7 +121,7 @@ public class Catalog implements Validated {
                 .type(type)
                 .format(format);
 
-        FieldResponse response = fieldApi.addField(userUuid, id, request);
+        FieldResponse response = fieldApi.addField(masterUser.getUuid(), id, request);
         return fieldResponseToFieldMapper(response);
     }
 

@@ -1,4 +1,4 @@
-package ru.msvdev.ds.client.catalog;
+package ru.msvdev.ds.client.model.catalog;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import ru.msvdev.ds.client.base.DataStoreContainerTest;
-import ru.msvdev.ds.client.cartalog.Catalog;
-import ru.msvdev.ds.client.datastore.DataStore;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
+import ru.msvdev.ds.client.model.datastore.DataStore;
 import ru.msvdev.ds.client.factory.ApiBuilderFactory;
 import ru.msvdev.ds.client.factory.BuilderFactory;
-import ru.msvdev.ds.client.field.Field;
+import ru.msvdev.ds.client.model.field.Field;
 import ru.msvdev.ds.client.openapi.ApiException;
 import ru.msvdev.ds.client.openapi.model.FieldTypes;
 import ru.msvdev.ds.client.provider.DataStoreProvider;

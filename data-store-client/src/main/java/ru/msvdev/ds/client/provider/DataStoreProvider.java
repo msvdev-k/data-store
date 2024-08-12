@@ -2,8 +2,7 @@ package ru.msvdev.ds.client.provider;
 
 import ru.msvdev.ds.client.openapi.ApiClient;
 import ru.msvdev.ds.client.openapi.Configuration;
-
-import java.util.UUID;
+import ru.msvdev.ds.client.model.user.User;
 
 /**
  * Базовый абстрактный провайдер, обеспечивающий доступ к Data Store.
@@ -29,12 +28,18 @@ public abstract class DataStoreProvider {
 
 
     /**
-     * Уникальный идентификатор пользователя, осуществляющего запросы.
-     * Все запросы к серверу ведутся от этого идентификатора. В случае отсутствия
-     * идентификатора пользователь считается неавторизованным
+     * Пользователь, от имени которого осуществляются все запросы к Data Store.
+     * В случае отсутствия пользователь считается неавторизованным
      *
-     * @return идентификатор пользователя
+     * @return пользователь осуществляющий запросы к Data Store
      */
-    public abstract UUID getUserUuid();
+    public abstract User getMasterUser();
 
+
+    /**
+     * Провайдер, обеспечивающий доступ к сервису пользователей
+     *
+     * @return UserProvider
+     */
+    public abstract UserProvider getUserProvider();
 }

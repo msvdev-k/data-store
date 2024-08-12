@@ -1,18 +1,17 @@
-package ru.msvdev.ds.client.field;
+package ru.msvdev.ds.client.model.field;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import ru.msvdev.ds.client.base.Validated;
-import ru.msvdev.ds.client.cartalog.Catalog;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
 import ru.msvdev.ds.client.openapi.ApiException;
 import ru.msvdev.ds.client.openapi.api.FieldApi;
 import ru.msvdev.ds.client.openapi.model.FieldRequest;
 import ru.msvdev.ds.client.openapi.model.FieldResponse;
 import ru.msvdev.ds.client.openapi.model.FieldTypes;
-
-import java.util.UUID;
+import ru.msvdev.ds.client.model.user.User;
 
 
 @EqualsAndHashCode
@@ -21,8 +20,11 @@ import java.util.UUID;
 public class Field implements Validated {
 
     private final FieldApi fieldApi;
-    private final UUID userUuid;
+
+    @Getter
     private final Catalog catalog;
+    @Getter
+    private final User masterUser;
 
     @Getter
     private Long id;
@@ -80,7 +82,7 @@ public class Field implements Validated {
                 .name(newName)
                 .description(newDescription);
 
-        FieldResponse response = fieldApi.updateFieldById(userUuid, catalog.getId(), id, request);
+        FieldResponse response = fieldApi.updateFieldById(masterUser.getUuid(), catalog.getId(), id, request);
 
         if (!id.equals(response.getId())) {
             throw new RuntimeException("Update field order or name or description error");
@@ -96,7 +98,7 @@ public class Field implements Validated {
      * Удалить поле из картотеки
      */
     public void remove() throws ApiException {
-        fieldApi.removeFieldById(userUuid, catalog.getId(), id);
+        fieldApi.removeFieldById(masterUser.getUuid(), catalog.getId(), id);
         id = null;
         order = null;
         name = null;

@@ -1,17 +1,18 @@
-package ru.msvdev.ds.client.datastore;
+package ru.msvdev.ds.client.model.datastore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NonNull;
-import ru.msvdev.ds.client.cartalog.Catalog;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
 import ru.msvdev.ds.client.factory.BuilderFactory;
 import ru.msvdev.ds.client.openapi.ApiException;
 import ru.msvdev.ds.client.openapi.api.CatalogApi;
 import ru.msvdev.ds.client.openapi.model.CatalogRequest;
 import ru.msvdev.ds.client.openapi.model.CatalogResponse;
+import ru.msvdev.ds.client.model.user.User;
 
 import java.util.List;
-import java.util.UUID;
 
 
 /**
@@ -24,7 +25,9 @@ public class DataStore {
     private final BuilderFactory builderFactory;
 
     private final CatalogApi catalogApi;
-    private final UUID userUuid;
+
+    @Getter
+    private final User masterUser;
 
 
     /**
@@ -34,7 +37,7 @@ public class DataStore {
      */
     public List<Catalog> getCatalogs() throws ApiException {
         return catalogApi
-                .catalogList(userUuid)
+                .catalogList(masterUser.getUuid())
                 .stream()
                 .map(this::catalogResponseToCatalogMapper)
                 .toList();
@@ -52,7 +55,7 @@ public class DataStore {
         CatalogRequest request = new CatalogRequest()
                 .name(name).description(description);
 
-        CatalogResponse response = catalogApi.addCatalog(userUuid, request);
+        CatalogResponse response = catalogApi.addCatalog(masterUser.getUuid(), request);
         return catalogResponseToCatalogMapper(response);
     }
 

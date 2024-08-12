@@ -3,11 +3,13 @@ package ru.msvdev.ds.client.factory;
 import ru.msvdev.ds.client.cartalog.Catalog;
 import ru.msvdev.ds.client.datastore.DataStore;
 import ru.msvdev.ds.client.field.Field;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
+import ru.msvdev.ds.client.model.datastore.DataStore;
+import ru.msvdev.ds.client.model.field.Field;
+import ru.msvdev.ds.client.model.user.User;
 import ru.msvdev.ds.client.openapi.ApiClient;
 import ru.msvdev.ds.client.openapi.api.*;
 import ru.msvdev.ds.client.provider.DataStoreProvider;
-
-import java.util.UUID;
 
 
 /**
@@ -18,7 +20,7 @@ public class ApiBuilderFactory implements BuilderFactory {
 
     private final BuilderFactory builderFactory;
 
-    private final UUID userUuid;
+    private final User masterUser;
 
     private final CardApi cardApi;
     private final CatalogApi catalogApi;
@@ -31,7 +33,7 @@ public class ApiBuilderFactory implements BuilderFactory {
 
     public ApiBuilderFactory(BuilderFactory builderFactory, DataStoreProvider dataStoreProvider) {
         this.builderFactory = builderFactory;
-        this.userUuid = dataStoreProvider.getUserUuid();
+        this.masterUser = dataStoreProvider.getMasterUser();
 
         ApiClient apiClient = dataStoreProvider.getApiClient();
         cardApi = new CardApi(apiClient);
@@ -48,7 +50,7 @@ public class ApiBuilderFactory implements BuilderFactory {
     public DataStore.DataStoreBuilder getDataStoreBuilder() {
         return builderFactory.getDataStoreBuilder()
                 .builderFactory(this)
-                .userUuid(userUuid)
+                .masterUser(masterUser)
                 .catalogApi(catalogApi);
     }
 
@@ -59,6 +61,7 @@ public class ApiBuilderFactory implements BuilderFactory {
                 .catalogApi(catalogApi)
                 .fieldApi(fieldApi)
                 .userUuid(userUuid);
+                .masterUser(masterUser);
     }
 
 
@@ -66,7 +69,7 @@ public class ApiBuilderFactory implements BuilderFactory {
     public Field.FieldBuilder getFieldBuilder() {
         return (Field.FieldBuilder) builderFactory.getFieldBuilder()
                 .fieldApi(fieldApi)
-                .userUuid(userUuid);
+                .masterUser(masterUser);
     }
 
 }

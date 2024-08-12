@@ -1,11 +1,11 @@
-package ru.msvdev.ds.client.field;
+package ru.msvdev.ds.client.model.field;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.msvdev.ds.client.base.DataStoreContainerTest;
-import ru.msvdev.ds.client.cartalog.Catalog;
-import ru.msvdev.ds.client.datastore.DataStore;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
+import ru.msvdev.ds.client.model.datastore.DataStore;
 import ru.msvdev.ds.client.factory.ApiBuilderFactory;
 import ru.msvdev.ds.client.factory.BuilderFactory;
 import ru.msvdev.ds.client.openapi.ApiException;

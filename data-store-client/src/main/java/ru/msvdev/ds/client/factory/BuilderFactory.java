@@ -1,9 +1,9 @@
 package ru.msvdev.ds.client.factory;
 
-import ru.msvdev.ds.client.card.Card;
-import ru.msvdev.ds.client.cartalog.Catalog;
-import ru.msvdev.ds.client.datastore.DataStore;
-import ru.msvdev.ds.client.field.Field;
+import ru.msvdev.ds.client.model.card.Card;
+import ru.msvdev.ds.client.model.cartalog.Catalog;
+import ru.msvdev.ds.client.model.datastore.DataStore;
+import ru.msvdev.ds.client.model.field.Field;
 
 
 /**

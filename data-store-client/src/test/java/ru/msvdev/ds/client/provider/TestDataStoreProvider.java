@@ -1,8 +1,7 @@
 package ru.msvdev.ds.client.provider;
 
 import ru.msvdev.ds.client.openapi.ApiClient;
-
-import java.util.UUID;
+import ru.msvdev.ds.client.model.user.User;
 
 
 /**
@@ -10,19 +9,21 @@ import java.util.UUID;
  */
 public class TestDataStoreProvider extends DataStoreProvider {
 
-    private final UUID userUuid;
+    private final UserProvider userProvider;
+    private final User masterUser;
 
-    private TestDataStoreProvider(UUID userUuid) {
-        this.userUuid = userUuid;
+    private TestDataStoreProvider(UserProvider userProvider) {
+        this.userProvider = userProvider;
+        this.masterUser = userProvider.getAuthUser();
     }
 
 
     public static TestDataStoreProvider getInstance(ProviderConfiguration configuration) {
-        return getInstance(configuration, UUID.randomUUID());
+        return getInstance(configuration, TestUserProvider.getInstance());
     }
 
-    public static TestDataStoreProvider getInstance(ProviderConfiguration configuration, UUID userUuid) {
-        TestDataStoreProvider provider = new TestDataStoreProvider(userUuid);
+    public static TestDataStoreProvider getInstance(ProviderConfiguration configuration, UserProvider userProvider) {
+        TestDataStoreProvider provider = new TestDataStoreProvider(userProvider);
 
         ApiClient client = provider.getApiClient();
         client.setScheme(configuration.getScheme());
@@ -34,7 +35,12 @@ public class TestDataStoreProvider extends DataStoreProvider {
 
 
     @Override
-    public UUID getUserUuid() {
-        return userUuid;
+    public User getMasterUser() {
+        return masterUser;
+    }
+
+    @Override
+    public UserProvider getUserProvider() {
+        return userProvider;
     }
 }
