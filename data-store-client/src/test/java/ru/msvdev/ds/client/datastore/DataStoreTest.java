@@ -9,6 +9,7 @@ import ru.msvdev.ds.client.factory.ApiBuilderFactory;
 import ru.msvdev.ds.client.factory.BuilderFactory;
 import ru.msvdev.ds.client.openapi.ApiException;
 import ru.msvdev.ds.client.provider.DataStoreProvider;
+import ru.msvdev.ds.client.provider.ProviderConfiguration;
 import ru.msvdev.ds.client.provider.TestDataStoreProvider;
 
 import java.util.List;
@@ -19,21 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DataStoreTest {
 
-    private static String dataStoreHost;
-    private static int dataStorePort;
+    private static ProviderConfiguration configuration;
 
     private DataStore dataStore;
 
     @BeforeAll
     static void beforeAllInit() {
-        dataStoreHost = DataStoreContainerTest.dataStoreHost();
-        dataStorePort = DataStoreContainerTest.dataStorePort();
+        configuration = DataStoreContainerTest.providerConfiguration();
     }
 
 
     @BeforeEach
     void init() {
-        DataStoreProvider provider = TestDataStoreProvider.getInstance(dataStoreHost, dataStorePort);
+        DataStoreProvider provider = TestDataStoreProvider.getInstance(configuration);
 
         ApiBuilderFactory builderFactory = new ApiBuilderFactory(
                 new BuilderFactory() {

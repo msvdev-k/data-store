@@ -17,17 +17,17 @@ public class TestDataStoreProvider extends DataStoreProvider {
     }
 
 
-    public static TestDataStoreProvider getInstance(String host, int port) {
-        return getInstance(host, port, UUID.randomUUID());
+    public static TestDataStoreProvider getInstance(ProviderConfiguration configuration) {
+        return getInstance(configuration, UUID.randomUUID());
     }
 
-    public static TestDataStoreProvider getInstance(String host, int port, UUID userUuid) {
+    public static TestDataStoreProvider getInstance(ProviderConfiguration configuration, UUID userUuid) {
         TestDataStoreProvider provider = new TestDataStoreProvider(userUuid);
 
         ApiClient client = provider.getApiClient();
-        client.setScheme("http");
-        client.setHost(host);
-        client.setPort(port);
+        client.setScheme(configuration.getScheme());
+        client.setHost(configuration.getHost());
+        client.setPort(configuration.getPort());
 
         return provider;
     }

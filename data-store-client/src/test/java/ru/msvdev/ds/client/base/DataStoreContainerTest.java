@@ -8,6 +8,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
+import ru.msvdev.ds.client.provider.ProviderConfiguration;
 
 
 /**
@@ -72,6 +73,13 @@ public class DataStoreContainerTest {
         return String.format("http://%s:%d", DATA_STORE_CONTAINER.getHost(), DATA_STORE_CONTAINER.getFirstMappedPort());
     }
 
+    public static ProviderConfiguration providerConfiguration() {
+        return ProviderConfiguration.builder()
+                .scheme("http")
+                .host(DATA_STORE_CONTAINER.getHost())
+                .port(DATA_STORE_CONTAINER.getFirstMappedPort())
+                .build();
+    }
 
     private static Network reusableNetwork() {
         final String id = DockerClientFactory.instance().client()
